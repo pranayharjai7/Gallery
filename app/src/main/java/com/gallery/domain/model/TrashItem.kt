@@ -13,4 +13,8 @@ data class TrashItem(
 )
 
 val TrashItem.isVideo get() = mimeType.startsWith("video/")
-val TrashItem.daysUntilPurge get() = 30 - ((System.currentTimeMillis() - deletedAt) / 86400000).toInt()
+private const val TRASH_RETENTION_DAYS = 30
+private const val MS_PER_DAY = 86_400_000L
+
+val TrashItem.daysUntilPurge: Int
+    get() = TRASH_RETENTION_DAYS - ((System.currentTimeMillis() - deletedAt) / MS_PER_DAY).toInt()
