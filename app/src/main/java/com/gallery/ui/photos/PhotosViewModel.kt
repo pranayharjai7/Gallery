@@ -28,6 +28,7 @@ data class PhotosUiState(
     val isLoading: Boolean = true,
     val groupedMedia: Map<String, List<IndexedMediaItem>> = emptyMap(),
     val memoriesItems: List<MediaItem> = emptyList(),
+    val memoriesDismissed: Boolean = false,
     val selectedIds: Set<Long> = emptySet(),
     val error: String? = null
 )
@@ -63,7 +64,7 @@ class PhotosViewModel @Inject constructor(
         val monthDay = (today.get(Calendar.MONTH) + 1) * 100 + today.get(Calendar.DAY_OF_MONTH)
         viewModelScope.launch {
             getOnThisDay(monthDay).collect { items ->
-                if (items.size >= 3) {
+                if (items.size >= 3 && !_uiState.value.memoriesDismissed) {
                     _uiState.update { it.copy(memoriesItems = items) }
                 }
             }
@@ -79,14 +80,15 @@ class PhotosViewModel @Inject constructor(
 
     fun clearSelection() = _uiState.update { it.copy(selectedIds = emptySet()) }
 
-    fun dismissMemories() = _uiState.update { it.copy(memoriesItems = emptyList()) }
+    fun dismissMemories() = _uiState.update { it.copy(memoriesItems = emptyList(), memoriesDismissed = true) }
 
     fun selectAll(allIds: List<Long>) = _uiState.update { it.copy(selectedIds = allIds.toSet()) }
 
     fun deleteSelected() {
-        val ids = _uiState.value.selectedIds
         viewModelScope.launch {
-            _uiState.value.groupedMedia.values
+            val snapshot = _uiState.value
+            val ids = snapshot.selectedIds
+            snapshot.groupedMedia.values
                 .flatten()
                 .filter { it.item.id in ids }
                 .forEach { moveToTrash(it.item) }
@@ -108,13 +110,13 @@ class PhotosViewModel @Inject constructor(
         val yesterday = (today.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, -1) }
 
         val groups = LinkedHashMap<String, MutableList<MediaItem>>()
+        val monthYearFormat = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
         items.forEach { item ->
             val cal = Calendar.getInstance().apply { timeInMillis = item.dateTaken }
             val key = when {
                 cal.after(today) || isSameDay(cal, today) -> "TODAY"
                 isSameDay(cal, yesterday) -> "YESTERDAY"
-                else -> SimpleDateFormat("MMMM yyyy", Locale.getDefault())
-                    .format(cal.time).uppercase(Locale.getDefault())
+                else -> monthYearFormat.format(cal.time).uppercase(Locale.getDefault())
             }
             groups.getOrPut(key) { mutableListOf() }.add(item)
         }

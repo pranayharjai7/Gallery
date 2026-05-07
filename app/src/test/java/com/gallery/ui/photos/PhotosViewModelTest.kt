@@ -204,11 +204,9 @@ class PhotosViewModelTest {
 
         val vm = buildVm()
         vm.uiState.test {
-            // Drain all emissions until we get one with memories populated
-            var state = awaitItem()
-            while (state.memoriesItems.isEmpty()) {
-                state = awaitItem()
-            }
+            awaitItem() // initial
+            awaitItem() // either memories or media loaded
+            val state = awaitItem() // both loaded
             assertEquals(5, state.memoriesItems.size)
             cancelAndIgnoreRemainingEvents()
         }

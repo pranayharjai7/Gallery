@@ -1,6 +1,7 @@
 package com.gallery.ui.photos
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -42,7 +43,7 @@ import com.gallery.ui.common.MediaThumbnail
 import com.gallery.ui.common.SelectionActionBar
 
 @Composable
-fun MemoriesCard(
+internal fun MemoriesCard(
     items: List<MediaItem>,
     onDismiss: () -> Unit,
     onTap: () -> Unit
@@ -53,7 +54,7 @@ fun MemoriesCard(
             .fillMaxWidth()
             .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
-        androidx.compose.foundation.layout.Column(modifier = Modifier.padding(12.dp)) {
+        Column(modifier = Modifier.padding(12.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
