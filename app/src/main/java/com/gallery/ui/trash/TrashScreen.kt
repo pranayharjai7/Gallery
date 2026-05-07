@@ -118,6 +118,10 @@ fun TrashScreen(
     ) { innerPadding ->
         when {
             uiState.isLoading -> LoadingState(modifier = Modifier.padding(innerPadding))
+            uiState.error != null -> EmptyState(
+                title = "Something went wrong",
+                message = uiState.error!!
+            )
             uiState.items.isEmpty() -> EmptyState(
                 title = "Trash",
                 message = "Trash is empty",
@@ -186,7 +190,7 @@ private fun TrashItemThumbnail(
             )
         }
 
-        val days = item.daysUntilPurge
+        val days = maxOf(0, item.daysUntilPurge)
         val badgeColor = when {
             days <= 3 -> Color(0xFFB00020)
             days <= 7 -> Color(0xFFE65100)

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gallery.domain.model.TrashItem
 import com.gallery.domain.usecase.GetTrashUseCase
+import com.gallery.domain.usecase.PurgeAllTrashUseCase
 import com.gallery.domain.usecase.PurgeTrashItemUseCase
 import com.gallery.domain.usecase.RestoreFromTrashUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,7 +27,8 @@ data class TrashUiState(
 class TrashViewModel @Inject constructor(
     private val getTrash: GetTrashUseCase,
     private val restore: RestoreFromTrashUseCase,
-    private val purge: PurgeTrashItemUseCase
+    private val purge: PurgeTrashItemUseCase,
+    private val purgeAll: PurgeAllTrashUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TrashUiState())
@@ -62,11 +64,10 @@ class TrashViewModel @Inject constructor(
     }
 
     fun purgeSelected() {
-        val snapshot = _uiState.value
-        val ids = snapshot.selectedIds.toSet()
+        val ids = _uiState.value.selectedIds.toSet()
         viewModelScope.launch {
-            ids.forEach { purge(it) }
-            clearSelection()
+            purgeAll(ids.toList())
+            _uiState.update { it.copy(selectedIds = it.selectedIds - ids) }
         }
     }
 
@@ -75,14 +76,12 @@ class TrashViewModel @Inject constructor(
         val ids = snapshot.selectedIds.toSet()
         viewModelScope.launch {
             snapshot.items.filter { it.id in ids }.forEach { restore(it) }
-            clearSelection()
+            _uiState.update { it.copy(selectedIds = it.selectedIds - ids) }
         }
     }
 
     fun emptyTrash() {
         val ids = _uiState.value.items.map { it.id }
-        viewModelScope.launch {
-            ids.forEach { purge(it) }
-        }
+        viewModelScope.launch { purgeAll(ids) }
     }
 }

@@ -4,6 +4,7 @@ import android.net.Uri
 import app.cash.turbine.test
 import com.gallery.domain.model.TrashItem
 import com.gallery.domain.usecase.GetTrashUseCase
+import com.gallery.domain.usecase.PurgeAllTrashUseCase
 import com.gallery.domain.usecase.PurgeTrashItemUseCase
 import com.gallery.domain.usecase.RestoreFromTrashUseCase
 import io.mockk.Runs
@@ -34,6 +35,7 @@ class TrashViewModelTest {
     private lateinit var getTrash: GetTrashUseCase
     private lateinit var restore: RestoreFromTrashUseCase
     private lateinit var purge: PurgeTrashItemUseCase
+    private lateinit var purgeAll: PurgeAllTrashUseCase
 
     private fun fakeTrashItem(id: Long, mimeType: String = "image/jpeg") = TrashItem(
         id = id,
@@ -54,9 +56,11 @@ class TrashViewModelTest {
         getTrash = mockk()
         restore = mockk()
         purge = mockk()
+        purgeAll = mockk()
         every { getTrash() } returns flowOf(listOf(item1, item2))
         coEvery { restore(any()) } just Runs
         coEvery { purge(any()) } just Runs
+        coEvery { purgeAll(any()) } just Runs
     }
 
     @After
@@ -64,7 +68,7 @@ class TrashViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun buildViewModel() = TrashViewModel(getTrash, restore, purge)
+    private fun buildViewModel() = TrashViewModel(getTrash, restore, purge, purgeAll)
 
     @Test
     fun `initial state is loading, then items are loaded`() = runTest(testDispatcher) {
@@ -134,8 +138,7 @@ class TrashViewModelTest {
         viewModel.toggleSelection(item2.id)
         viewModel.purgeSelected()
         testDispatcher.scheduler.advanceUntilIdle()
-        coVerify { purge(item1.id) }
-        coVerify { purge(item2.id) }
+        coVerify { purgeAll(any()) }
         assertTrue(viewModel.uiState.value.selectedIds.isEmpty())
     }
 
@@ -156,7 +159,6 @@ class TrashViewModelTest {
         testDispatcher.scheduler.advanceUntilIdle()
         viewModel.emptyTrash()
         testDispatcher.scheduler.advanceUntilIdle()
-        coVerify { purge(item1.id) }
-        coVerify { purge(item2.id) }
+        coVerify { purgeAll(any()) }
     }
 }
