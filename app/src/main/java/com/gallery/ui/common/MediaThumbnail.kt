@@ -38,8 +38,8 @@ fun MediaThumbnail(
 ) {
     Box(
         modifier = modifier
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
             .clip(RoundedCornerShape(2.dp))
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
     ) {
         AsyncImage(
             model = item.uri,
@@ -50,7 +50,7 @@ fun MediaThumbnail(
         if (item.isVideo) {
             Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.2f)))
             Icon(Icons.Default.PlayArrow, null, tint = Color.White, modifier = Modifier.align(Alignment.Center).size(28.dp))
-            item.duration?.let { ms ->
+            item.duration?.takeIf { it > 0L }?.let { ms ->
                 val seconds = ms / 1000
                 val text = if (seconds >= 3600) "%d:%02d:%02d".format(seconds/3600, (seconds%3600)/60, seconds%60)
                            else "%d:%02d".format(seconds/60, seconds%60)

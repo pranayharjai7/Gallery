@@ -22,9 +22,13 @@ fun DateHeader(dateLabel: String, modifier: Modifier = Modifier) {
 }
 
 fun formatDateHeader(timestamp: Long): String {
+    val now = System.currentTimeMillis()
     val cal = Calendar.getInstance().apply { timeInMillis = timestamp }
-    val today = Calendar.getInstance()
-    val yesterday = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -1) }
+    val today = Calendar.getInstance().apply { timeInMillis = now }
+    val yesterday = Calendar.getInstance().apply {
+        timeInMillis = now
+        add(Calendar.DAY_OF_YEAR, -1)
+    }
     return when {
         cal.isSameDay(today) -> "Today"
         cal.isSameDay(yesterday) -> "Yesterday"
