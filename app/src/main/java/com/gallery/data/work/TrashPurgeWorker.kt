@@ -35,6 +35,8 @@ class TrashPurgeWorker @AssistedInject constructor(
     companion object {
         const val WORK_NAME = "trash_purge"
 
+        // TODO(Phase 05): GalleryApp must implement Configuration.Provider and supply
+        // HiltWorkerFactory; without it this worker will fail at runtime with a factory error.
         fun buildRequest(): PeriodicWorkRequest =
             PeriodicWorkRequestBuilder<TrashPurgeWorker>(1, TimeUnit.DAYS)
                 .setConstraints(

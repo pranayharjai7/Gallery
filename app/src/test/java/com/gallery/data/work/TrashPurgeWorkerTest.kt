@@ -9,6 +9,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.just
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -40,13 +41,18 @@ class TrashPurgeWorkerTest {
             bucketId = 1L
         )
 
-        coEvery { trashRepo.getExpired(any()) } returns listOf(expiredItem)
+        val cutoffSlot = slot<Long>()
+        coEvery { trashRepo.getExpired(capture(cutoffSlot)) } returns listOf(expiredItem)
         coEvery { trashRepo.deleteAll(any()) } just Runs
 
         val worker = TrashPurgeWorker(context, workerParams, trashRepo)
         val result = worker.doWork()
 
         assertEquals(androidx.work.ListenableWorker.Result.success(), result)
+        val expectedCutoff = System.currentTimeMillis() - 30L * 24 * 60 * 60 * 1000
+        assert(kotlin.math.abs(cutoffSlot.captured - expectedCutoff) < 5_000L) {
+            "Expected cutoff ~$expectedCutoff but was ${cutoffSlot.captured}"
+        }
         coVerify(exactly = 1) { trashRepo.getExpired(any()) }
         coVerify(exactly = 1) { trashRepo.deleteAll(listOf(1L)) }
     }
