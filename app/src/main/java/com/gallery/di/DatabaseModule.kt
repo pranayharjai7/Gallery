@@ -4,14 +4,18 @@ import android.content.Context
 import androidx.room.Room
 import com.gallery.data.room.GalleryDatabase
 import com.gallery.data.room.GalleryDatabase.Companion.DATABASE_NAME
+import com.gallery.data.mediastore.MediaStoreAlbumRepository
+import com.gallery.data.mediastore.MediaStoreMediaRepository
 import com.gallery.data.room.RoomFavoritesRepository
 import com.gallery.data.room.RoomHiddenRepository
 import com.gallery.data.room.RoomTrashRepository
 import com.gallery.data.room.dao.FavoritesDao
 import com.gallery.data.room.dao.HiddenDao
 import com.gallery.data.room.dao.TrashDao
+import com.gallery.domain.repository.AlbumRepository
 import com.gallery.domain.repository.FavoritesRepository
 import com.gallery.domain.repository.HiddenRepository
+import com.gallery.domain.repository.MediaRepository
 import com.gallery.domain.repository.TrashRepository
 import dagger.Binds
 import dagger.Module
@@ -60,4 +64,12 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindFavoritesRepository(impl: RoomFavoritesRepository): FavoritesRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindMediaRepository(impl: MediaStoreMediaRepository): MediaRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAlbumRepository(impl: MediaStoreAlbumRepository): AlbumRepository
 }
