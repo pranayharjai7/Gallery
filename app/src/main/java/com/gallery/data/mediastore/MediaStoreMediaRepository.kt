@@ -28,8 +28,8 @@ private val PROJECTION = arrayOf(
     MediaStore.Files.FileColumns.MIME_TYPE,
     MediaStore.Files.FileColumns.BUCKET_ID,
     MediaStore.Files.FileColumns.BUCKET_DISPLAY_NAME,
-    MediaStore.Files.FileColumns.LATITUDE,
-    MediaStore.Files.FileColumns.LONGITUDE,
+    "latitude",
+    "longitude",
 )
 
 @Singleton
@@ -122,8 +122,8 @@ class MediaStoreMediaRepository @Inject constructor(
             val mimeCol       = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.MIME_TYPE)
             val bucketIdCol   = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.BUCKET_ID)
             val bucketNameCol = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.BUCKET_DISPLAY_NAME)
-            val latCol        = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.LATITUDE)
-            val lonCol        = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.LONGITUDE)
+            val latCol        = cursor.getColumnIndexOrThrow("latitude")
+            val lonCol        = cursor.getColumnIndexOrThrow("longitude")
 
             while (cursor.moveToNext()) {
                 val id       = cursor.getLong(idCol)
