@@ -1,10 +1,6 @@
 package com.gallery.ui.navigation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -22,11 +18,7 @@ import com.gallery.ui.trash.TrashScreen
 import com.gallery.ui.editor.photo.PhotoEditScreen
 import com.gallery.ui.editor.video.VideoEditScreen
 import com.gallery.ui.viewer.ViewerScreen
-
-@Composable
-private fun SlideshowScreen(date: String, navController: NavHostController) {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("TODO: SlideshowScreen (date=$date)") }
-}
+import com.gallery.ui.memories.SlideshowScreen
 
 @Composable
 fun GalleryNavGraph(navController: NavHostController, modifier: Modifier = Modifier) {
@@ -34,7 +26,8 @@ fun GalleryNavGraph(navController: NavHostController, modifier: Modifier = Modif
         composable(Screen.Photos.route) {
             PhotosScreen(
                 onMediaClick = { mediaId -> navController.navigate(Screen.Viewer(mediaId).route) },
-                onNavigateToEditor = { mediaId, _ -> navController.navigate(Screen.Viewer(mediaId).route) }
+                onNavigateToEditor = { mediaId, _ -> navController.navigate(Screen.Viewer(mediaId).route) },
+                onNavigateToSlideshow = { navController.navigate(Screen.Slideshow("today").route) }
             )
         }
         composable(Screen.Albums.route) {
@@ -105,9 +98,11 @@ fun GalleryNavGraph(navController: NavHostController, modifier: Modifier = Modif
             val mediaId = backStackEntry.arguments!!.getLong("mediaId")
             VideoEditScreen(mediaId = mediaId, onBack = { navController.popBackStack() })
         }
-        composable(Screen.Slideshow.ROUTE) { backStackEntry ->
-            val date = backStackEntry.arguments?.getString("date") ?: return@composable
-            SlideshowScreen(date = date, navController = navController)
+        composable(
+            route = Screen.Slideshow.ROUTE,
+            arguments = listOf(navArgument("date") { type = NavType.StringType })
+        ) {
+            SlideshowScreen(onBack = { navController.popBackStack() })
         }
     }
 }
