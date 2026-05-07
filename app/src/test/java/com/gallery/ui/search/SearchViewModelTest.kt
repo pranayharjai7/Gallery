@@ -6,9 +6,11 @@ import com.gallery.domain.usecase.SearchMediaUseCase
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -18,6 +20,7 @@ import org.junit.Test
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -26,15 +29,15 @@ class SearchViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private val searchMedia: SearchMediaUseCase = mockk()
 
-    private fun fakeItem(id: Long, mimeType: String = "image/jpeg") = MediaItem(
+    private fun fakeItem(id: Long, name: String = "item_$id", mimeType: String = "image/jpeg", durationMs: Long? = null) = MediaItem(
         id = id,
         uri = mockk(relaxed = true),
-        name = "item_$id.${if (mimeType.startsWith("video")) "mp4" else "jpg"}",
+        name = name,
         dateTaken = 0L,
         size = 0L,
         width = 0,
         height = 0,
-        duration = if (mimeType.startsWith("video")) 5000L else null,
+        duration = durationMs ?: if (mimeType.startsWith("video")) 5000L else null,
         mimeType = mimeType,
         bucketId = 1L,
         bucketName = "Camera",
@@ -60,7 +63,7 @@ class SearchViewModelTest {
 
         val vm = buildVm()
         vm.onQueryChange("sunset")
-        advanceTimeBy(400)
+        advanceUntilIdle()
 
         assertEquals(listOf(item), vm.uiState.value.results)
         assertFalse(vm.uiState.value.isLoading)
@@ -91,20 +94,27 @@ class SearchViewModelTest {
 
     @Test
     fun `filter VIDEOS shows only video items`() = runTest {
-        val vm = buildVm()
-        vm.onFilterChange(MediaFilter.VIDEOS)
-        assertEquals(MediaFilter.VIDEOS, vm.uiState.value.filter)
-    }
-
-    @Test
-    fun `filter PHOTOS removes video items from results`() = runTest {
-        val photo = fakeItem(1L, "image/jpeg")
-        val video = fakeItem(2L, "video/mp4")
+        val photo = fakeItem(1L, "photo.jpg", "image/jpeg")
+        val video = fakeItem(2L, "video.mp4", "video/mp4", durationMs = 5000L)
         every { searchMedia("media") } returns flowOf(listOf(photo, video))
 
         val vm = buildVm()
         vm.onQueryChange("media")
-        advanceTimeBy(400)
+        advanceUntilIdle()
+        vm.onFilterChange(MediaFilter.VIDEOS)
+
+        assertEquals(listOf(video), vm.uiState.value.results)
+    }
+
+    @Test
+    fun `filter PHOTOS removes video items from results`() = runTest {
+        val photo = fakeItem(1L, mimeType = "image/jpeg")
+        val video = fakeItem(2L, mimeType = "video/mp4")
+        every { searchMedia("media") } returns flowOf(listOf(photo, video))
+
+        val vm = buildVm()
+        vm.onQueryChange("media")
+        advanceUntilIdle()
         vm.onFilterChange(MediaFilter.PHOTOS)
 
         assertEquals(listOf(photo), vm.uiState.value.results)
@@ -112,13 +122,13 @@ class SearchViewModelTest {
 
     @Test
     fun `filter VIDEOS removes photo items from results`() = runTest {
-        val photo = fakeItem(1L, "image/jpeg")
-        val video = fakeItem(2L, "video/mp4")
+        val photo = fakeItem(1L, mimeType = "image/jpeg")
+        val video = fakeItem(2L, mimeType = "video/mp4")
         every { searchMedia("media") } returns flowOf(listOf(photo, video))
 
         val vm = buildVm()
         vm.onQueryChange("media")
-        advanceTimeBy(400)
+        advanceUntilIdle()
         vm.onFilterChange(MediaFilter.VIDEOS)
 
         assertEquals(listOf(video), vm.uiState.value.results)
@@ -137,23 +147,50 @@ class SearchViewModelTest {
         vm.onQueryChange("la")
         advanceTimeBy(100)
         vm.onQueryChange("lake")
-        advanceTimeBy(400)
+        advanceUntilIdle()
 
         assertEquals(items, vm.uiState.value.results)
     }
 
     @Test
     fun `filter change from PHOTOS to VIDEOS shows correct results`() = runTest {
-        val photo = fakeItem(1L, "image/jpeg")
-        val video = fakeItem(2L, "video/mp4")
+        val photo = fakeItem(1L, mimeType = "image/jpeg")
+        val video = fakeItem(2L, mimeType = "video/mp4")
         every { searchMedia("media") } returns flowOf(listOf(photo, video))
 
         val vm = buildVm()
         vm.onQueryChange("media")
-        advanceTimeBy(400)
+        advanceUntilIdle()
         vm.onFilterChange(MediaFilter.PHOTOS)
         vm.onFilterChange(MediaFilter.VIDEOS)
 
         assertEquals(listOf(video), vm.uiState.value.results)
+    }
+
+    @Test
+    fun `onQueryChange emits error state when searchMedia throws`() = runTest {
+        every { searchMedia("fail") } returns flow { throw RuntimeException("network error") }
+
+        val vm = buildVm()
+        vm.onQueryChange("fail")
+        advanceUntilIdle()
+
+        assertFalse(vm.uiState.value.isLoading)
+        assertEquals("network error", vm.uiState.value.error)
+    }
+
+    @Test
+    fun `starting a new query clears previous error`() = runTest {
+        every { searchMedia("fail") } returns flow { throw RuntimeException("oops") }
+        every { searchMedia("ok") } returns flowOf(emptyList())
+
+        val vm = buildVm()
+        vm.onQueryChange("fail")
+        advanceUntilIdle()
+        assertNotNull(vm.uiState.value.error)
+
+        vm.onQueryChange("ok")
+        // After starting new query, error should be cleared immediately (before debounce)
+        assertTrue(vm.uiState.value.error == null)
     }
 }

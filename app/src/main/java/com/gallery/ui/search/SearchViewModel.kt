@@ -23,7 +23,8 @@ data class SearchUiState(
     val filter: MediaFilter = MediaFilter.ALL,
     val results: List<MediaItem> = emptyList(),
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val rawResults: List<MediaItem> = emptyList()
 )
 
 @HiltViewModel
@@ -35,32 +36,33 @@ class SearchViewModel @Inject constructor(
     val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
 
     private var searchJob: Job? = null
-    private var rawResults: List<MediaItem> = emptyList()
 
     fun onQueryChange(query: String) {
-        _uiState.update { it.copy(query = query) }
+        _uiState.update { it.copy(query = query, error = null) }
         searchJob?.cancel()
         if (query.isBlank()) {
-            rawResults = emptyList()
-            _uiState.update { it.copy(results = emptyList(), isLoading = false) }
+            _uiState.update { it.copy(results = emptyList(), isLoading = false, rawResults = emptyList()) }
             return
         }
         searchJob = viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             delay(300) // debounce
-            searchMedia(query)
-                .catch { e -> _uiState.update { it.copy(isLoading = false, error = e.message) } }
-                .collect { items ->
-                    rawResults = items
-                    _uiState.update { state ->
-                        state.copy(isLoading = false, results = applyFilter(items, state.filter))
+            try {
+                searchMedia(query)
+                    .catch { e -> _uiState.update { it.copy(isLoading = false, error = e.message ?: "Unknown error") } }
+                    .collect { items ->
+                        _uiState.update { state ->
+                            state.copy(isLoading = false, results = applyFilter(items, state.filter), rawResults = items)
+                        }
                     }
-                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isLoading = false, error = e.message ?: "Unknown error") }
+            }
         }
     }
 
     fun onFilterChange(filter: MediaFilter) {
-        _uiState.update { it.copy(filter = filter, results = applyFilter(rawResults, filter)) }
+        _uiState.update { it.copy(filter = filter, results = applyFilter(it.rawResults, filter)) }
     }
 
     private fun applyFilter(items: List<MediaItem>, filter: MediaFilter) = when (filter) {

@@ -69,8 +69,13 @@ fun SearchScreen(
         when {
             uiState.isLoading -> LoadingState()
 
+            uiState.error != null -> EmptyState(
+                title = "Something went wrong",
+                message = uiState.error!!
+            )
+
             uiState.query.isBlank() -> EmptyState(
-                title = "Search photos & videos",
+                title = "Search your photos and videos",
                 message = "Results will appear here"
             )
 
