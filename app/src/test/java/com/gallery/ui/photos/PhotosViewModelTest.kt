@@ -19,9 +19,9 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PhotosViewModelTest {
@@ -204,8 +204,11 @@ class PhotosViewModelTest {
 
         val vm = buildVm()
         vm.uiState.test {
-            awaitItem()
-            val state = awaitItem()
+            // Drain all emissions until we get one with memories populated
+            var state = awaitItem()
+            while (state.memoriesItems.isEmpty()) {
+                state = awaitItem()
+            }
             assertEquals(5, state.memoriesItems.size)
             cancelAndIgnoreRemainingEvents()
         }
