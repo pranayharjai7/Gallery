@@ -6,12 +6,17 @@ import com.gallery.domain.usecase.GetAllMediaUseCase
 import com.gallery.domain.usecase.GetOnThisDayUseCase
 import com.gallery.domain.usecase.MoveToTrashUseCase
 import com.gallery.domain.usecase.ToggleFavoriteUseCase
+import com.gallery.domain.usecase.AddToHiddenUseCase
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.Runs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -32,6 +37,7 @@ class PhotosViewModelTest {
     private lateinit var moveToTrash: MoveToTrashUseCase
     private lateinit var toggleFavorite: ToggleFavoriteUseCase
     private lateinit var getOnThisDay: GetOnThisDayUseCase
+    private lateinit var addToHidden: AddToHiddenUseCase
 
     @Before
     fun setUp() {
@@ -40,6 +46,8 @@ class PhotosViewModelTest {
         moveToTrash = mockk(relaxed = true)
         toggleFavorite = mockk(relaxed = true)
         getOnThisDay = mockk()
+        addToHidden = mockk()
+        coEvery { addToHidden(any()) } just Runs
     }
 
     @After
@@ -47,7 +55,7 @@ class PhotosViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun buildVm() = PhotosViewModel(getAllMedia, moveToTrash, toggleFavorite, getOnThisDay)
+    private fun buildVm() = PhotosViewModel(getAllMedia, moveToTrash, toggleFavorite, getOnThisDay, addToHidden)
 
     private fun fakeItem(
         id: Long,
@@ -244,5 +252,22 @@ class PhotosViewModelTest {
         testDispatcher.scheduler.advanceUntilIdle()
 
         coVerify { toggleFavorite(42L) }
+    }
+
+    @Test
+    fun `addSelectedToHidden calls AddToHiddenUseCase for each selected id`() = runTest {
+        val items = listOf(fakeItem(1L), fakeItem(2L), fakeItem(3L))
+        every { getAllMedia() } returns flowOf(items)
+        every { getOnThisDay(any()) } returns flowOf(emptyList())
+
+        val vm = buildVm()
+        advanceUntilIdle()
+        vm.toggleSelection(1L)
+        vm.toggleSelection(3L)
+        vm.addSelectedToHidden()
+        advanceUntilIdle()
+        coVerify(exactly = 1) { addToHidden(1L) }
+        coVerify(exactly = 1) { addToHidden(3L) }
+        assertTrue(vm.uiState.value.selectedIds.isEmpty())
     }
 }

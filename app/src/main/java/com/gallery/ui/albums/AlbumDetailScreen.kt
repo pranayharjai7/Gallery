@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -27,6 +28,7 @@ import com.gallery.ui.common.EmptyState
 import com.gallery.ui.common.LoadingState
 import com.gallery.ui.common.MediaThumbnail
 import com.gallery.ui.common.SelectionActionBar
+import com.gallery.ui.common.shareMedia
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,6 +42,7 @@ fun AlbumDetailScreen(
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isSelecting = uiState.selectedIds.isNotEmpty()
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -47,7 +50,12 @@ fun AlbumDetailScreen(
                 SelectionActionBar(
                     selectedCount = uiState.selectedIds.size,
                     onSelectAll = { viewModel.selectAll(uiState.items.map { it.id }) },
-                    onShare = { },
+                    onShare = {
+                        val items = uiState.items.filter { it.id in uiState.selectedIds }
+                        context.shareMedia(items)
+                        viewModel.clearSelection()
+                    },
+                    onMoveToHidden = { viewModel.addSelectedToHidden() },
                     onDelete = { viewModel.deleteSelected() },
                     onClear = { viewModel.clearSelection() }
                 )

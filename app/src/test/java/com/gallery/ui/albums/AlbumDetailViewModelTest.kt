@@ -4,9 +4,13 @@ import app.cash.turbine.test
 import com.gallery.domain.model.MediaItem
 import com.gallery.domain.usecase.GetAlbumMediaUseCase
 import com.gallery.domain.usecase.MoveToTrashUseCase
+import com.gallery.domain.usecase.AddToHiddenUseCase
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.Runs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -25,6 +29,7 @@ class AlbumDetailViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private lateinit var getAlbumMedia: GetAlbumMediaUseCase
     private lateinit var moveToTrash: MoveToTrashUseCase
+    private lateinit var addToHidden: AddToHiddenUseCase
 
     private val albumId = "1001"
 
@@ -48,6 +53,8 @@ class AlbumDetailViewModelTest {
         Dispatchers.setMain(testDispatcher)
         getAlbumMedia = mockk()
         moveToTrash = mockk(relaxed = true)
+        addToHidden = mockk()
+        coEvery { addToHidden(any()) } just Runs
     }
 
     @After
@@ -55,7 +62,7 @@ class AlbumDetailViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun buildVm() = AlbumDetailViewModel(getAlbumMedia, moveToTrash)
+    private fun buildVm() = AlbumDetailViewModel(getAlbumMedia, moveToTrash, addToHidden)
 
     @Test
     fun `loadAlbum sets albumName from first item bucketName`() = runTest {

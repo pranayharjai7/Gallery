@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gallery.domain.model.MediaItem
 import com.gallery.domain.model.isVideo
+import com.gallery.domain.usecase.AddToHiddenUseCase
+import com.gallery.domain.usecase.MoveToTrashUseCase
 import com.gallery.domain.usecase.SearchMediaUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -24,12 +26,15 @@ data class SearchUiState(
     val results: List<MediaItem> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null,
-    val rawResults: List<MediaItem> = emptyList()
+    val rawResults: List<MediaItem> = emptyList(),
+    val selectedIds: Set<Long> = emptySet()
 )
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
-    private val searchMedia: SearchMediaUseCase
+    private val searchMedia: SearchMediaUseCase,
+    private val moveToTrash: MoveToTrashUseCase,
+    private val addToHidden: AddToHiddenUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SearchUiState())
@@ -63,6 +68,36 @@ class SearchViewModel @Inject constructor(
 
     fun onFilterChange(filter: MediaFilter) {
         _uiState.update { it.copy(filter = filter, results = applyFilter(it.rawResults, filter)) }
+    }
+
+    fun toggleSelection(id: Long) {
+        _uiState.update { state ->
+            val newSet = if (id in state.selectedIds) state.selectedIds - id else state.selectedIds + id
+            state.copy(selectedIds = newSet)
+        }
+    }
+
+    fun clearSelection() = _uiState.update { it.copy(selectedIds = emptySet()) }
+
+    fun selectAll(allIds: List<Long>) = _uiState.update { it.copy(selectedIds = allIds.toSet()) }
+
+    fun deleteSelected() {
+        viewModelScope.launch {
+            val snapshot = _uiState.value
+            val ids = snapshot.selectedIds
+            snapshot.results
+                .filter { it.id in ids }
+                .forEach { moveToTrash(it) }
+            clearSelection()
+        }
+    }
+
+    fun addSelectedToHidden() {
+        val ids = _uiState.value.selectedIds.toSet()
+        viewModelScope.launch {
+            ids.forEach { addToHidden(it) }
+            _uiState.update { it.copy(selectedIds = it.selectedIds - ids) }
+        }
     }
 
     private fun applyFilter(items: List<MediaItem>, filter: MediaFilter) = when (filter) {

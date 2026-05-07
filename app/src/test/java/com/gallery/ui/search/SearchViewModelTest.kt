@@ -2,9 +2,15 @@ package com.gallery.ui.search
 
 import app.cash.turbine.test
 import com.gallery.domain.model.MediaItem
+import com.gallery.domain.usecase.AddToHiddenUseCase
+import com.gallery.domain.usecase.MoveToTrashUseCase
 import com.gallery.domain.usecase.SearchMediaUseCase
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.Runs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
@@ -28,6 +34,8 @@ class SearchViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
     private val searchMedia: SearchMediaUseCase = mockk()
+    private val moveToTrash: MoveToTrashUseCase = mockk(relaxed = true)
+    private val addToHidden: AddToHiddenUseCase = mockk()
 
     private fun fakeItem(id: Long, name: String = "item_$id", mimeType: String = "image/jpeg", durationMs: Long? = null) = MediaItem(
         id = id,
@@ -47,6 +55,7 @@ class SearchViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
+        coEvery { addToHidden(any()) } just Runs
     }
 
     @After
@@ -54,7 +63,7 @@ class SearchViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun buildVm() = SearchViewModel(searchMedia)
+    private fun buildVm() = SearchViewModel(searchMedia, moveToTrash, addToHidden)
 
     @Test
     fun `onQueryChange debounces and returns results`() = runTest {
@@ -192,5 +201,24 @@ class SearchViewModelTest {
         vm.onQueryChange("ok")
         // After starting new query, error should be cleared immediately (before debounce)
         assertTrue(vm.uiState.value.error == null)
+    }
+
+    @Test
+    fun `addSelectedToHidden calls AddToHiddenUseCase for each selected id`() = runTest {
+        val items = listOf(fakeItem(1L), fakeItem(2L), fakeItem(3L))
+        every { searchMedia("test") } returns flowOf(items)
+
+        val vm = buildVm()
+        vm.onQueryChange("test")
+        advanceUntilIdle()
+
+        vm.toggleSelection(1L)
+        vm.toggleSelection(3L)
+        vm.addSelectedToHidden()
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { addToHidden(1L) }
+        coVerify(exactly = 1) { addToHidden(3L) }
+        assertTrue(vm.uiState.value.selectedIds.isEmpty())
     }
 }

@@ -3,6 +3,7 @@ package com.gallery.ui.albums
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gallery.domain.model.MediaItem
+import com.gallery.domain.usecase.AddToHiddenUseCase
 import com.gallery.domain.usecase.GetAlbumMediaUseCase
 import com.gallery.domain.usecase.MoveToTrashUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,7 +27,8 @@ data class AlbumDetailUiState(
 @HiltViewModel
 class AlbumDetailViewModel @Inject constructor(
     private val getAlbumMedia: GetAlbumMediaUseCase,
-    private val moveToTrash: MoveToTrashUseCase
+    private val moveToTrash: MoveToTrashUseCase,
+    private val addToHidden: AddToHiddenUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AlbumDetailUiState())
@@ -78,6 +80,14 @@ class AlbumDetailViewModel @Inject constructor(
             } finally {
                 clearSelection()
             }
+        }
+    }
+
+    fun addSelectedToHidden() {
+        val ids = _uiState.value.selectedIds.toSet()
+        viewModelScope.launch {
+            ids.forEach { addToHidden(it) }
+            _uiState.update { it.copy(selectedIds = it.selectedIds - ids) }
         }
     }
 }

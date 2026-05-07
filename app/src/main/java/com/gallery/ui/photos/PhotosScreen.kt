@@ -33,6 +33,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -41,6 +42,7 @@ import com.gallery.ui.common.EmptyState
 import com.gallery.ui.common.LoadingState
 import com.gallery.ui.common.MediaThumbnail
 import com.gallery.ui.common.SelectionActionBar
+import com.gallery.ui.common.shareMedia
 
 @Composable
 internal fun MemoriesCard(
@@ -92,6 +94,7 @@ fun PhotosScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isSelecting = uiState.selectedIds.isNotEmpty()
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -103,7 +106,14 @@ fun PhotosScreen(
                             uiState.groupedMedia.values.flatten().map { it.item.id }
                         )
                     },
-                    onShare = {},
+                    onShare = {
+                        val items = uiState.groupedMedia.values.flatten()
+                            .filter { it.item.id in uiState.selectedIds }
+                            .map { it.item }
+                        context.shareMedia(items)
+                        viewModel.clearSelection()
+                    },
+                    onMoveToHidden = { viewModel.addSelectedToHidden() },
                     onDelete = { viewModel.deleteSelected() },
                     onClear = { viewModel.clearSelection() }
                 )

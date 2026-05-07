@@ -3,6 +3,7 @@ package com.gallery.ui.photos
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gallery.domain.model.MediaItem
+import com.gallery.domain.usecase.AddToHiddenUseCase
 import com.gallery.domain.usecase.GetAllMediaUseCase
 import com.gallery.domain.usecase.GetOnThisDayUseCase
 import com.gallery.domain.usecase.MoveToTrashUseCase
@@ -38,7 +39,8 @@ class PhotosViewModel @Inject constructor(
     private val getAllMedia: GetAllMediaUseCase,
     private val moveToTrash: MoveToTrashUseCase,
     private val toggleFavorite: ToggleFavoriteUseCase,
-    private val getOnThisDay: GetOnThisDayUseCase
+    private val getOnThisDay: GetOnThisDayUseCase,
+    private val addToHidden: AddToHiddenUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PhotosUiState())
@@ -98,6 +100,14 @@ class PhotosViewModel @Inject constructor(
 
     fun toggleFavoriteItem(id: Long) {
         viewModelScope.launch { toggleFavorite(id) }
+    }
+
+    fun addSelectedToHidden() {
+        val ids = _uiState.value.selectedIds.toSet()
+        viewModelScope.launch {
+            ids.forEach { addToHidden(it) }
+            _uiState.update { it.copy(selectedIds = it.selectedIds - ids) }
+        }
     }
 
     private fun groupByDate(items: List<MediaItem>): Map<String, List<IndexedMediaItem>> {
