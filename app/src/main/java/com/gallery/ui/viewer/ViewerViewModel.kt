@@ -48,12 +48,18 @@ class ViewerViewModel @Inject constructor(
             }
                 .catch { e -> _uiState.update { it.copy(isLoading = false, error = e.message) } }
                 .collect { (items, favItems) ->
-                    val index = items.indexOfFirst { it.id == startMediaId }.coerceAtLeast(0)
                     _uiState.update { state ->
+                        val targetIndex = if (state.isLoading) {
+                            // First load: find the startMediaId position
+                            items.indexOfFirst { it.id == startMediaId }.coerceAtLeast(0)
+                        } else {
+                            // Subsequent emissions: keep current position, clamp to valid range
+                            state.currentIndex.coerceIn(0, (items.size - 1).coerceAtLeast(0))
+                        }
                         state.copy(
                             isLoading = false,
                             items = items,
-                            currentIndex = index,
+                            currentIndex = targetIndex,
                             favoriteIds = favItems.map { it.id }.toSet()
                         )
                     }

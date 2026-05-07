@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -82,6 +83,14 @@ fun ViewerScreen(
         pageCount = { uiState.items.size.coerceAtLeast(1) }
     )
 
+    val initialScrollDone = remember { mutableStateOf(false) }
+    LaunchedEffect(uiState.isLoading) {
+        if (!uiState.isLoading && !initialScrollDone.value) {
+            initialScrollDone.value = true
+            pagerState.scrollToPage(uiState.currentIndex)
+        }
+    }
+
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }.collect { page ->
             viewModel.onPageChanged(page)
@@ -97,7 +106,21 @@ fun ViewerScreen(
         if (uiState.isLoading) {
             LoadingState()
         } else if (uiState.items.isEmpty()) {
-            // nothing to show
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    IconButton(
+                        onClick = onBack,
+                        modifier = Modifier.align(Alignment.Start).padding(8.dp)
+                    ) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Color.White
+                        )
+                    }
+                    Text("Nothing to show", color = Color.White)
+                }
+            }
         } else {
             HorizontalPager(
                 state = pagerState,
@@ -110,8 +133,9 @@ fun ViewerScreen(
                     var scale by remember { mutableFloatStateOf(1f) }
                     var offset by remember { mutableStateOf(Offset.Zero) }
                     val transformState = rememberTransformableState { zoomChange, offsetChange, _ ->
-                        scale = (scale * zoomChange).coerceIn(1f, 5f)
-                        offset += offsetChange
+                        val newScale = (scale * zoomChange).coerceIn(1f, 5f)
+                        scale = newScale
+                        offset = if (newScale <= 1f) Offset.Zero else offset + offsetChange
                     }
                     AsyncImage(
                         model = item.uri,
@@ -231,8 +255,7 @@ fun ViewerScreen(
                         contentPadding = PaddingValues(horizontal = 4.dp),
                         horizontalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
-                        items(uiState.items) { item ->
-                            val idx = uiState.items.indexOf(item)
+                        itemsIndexed(uiState.items) { idx, item ->
                             AsyncImage(
                                 model = item.uri,
                                 contentDescription = null,
