@@ -79,6 +79,8 @@ class PhotosViewModel @Inject constructor(
 
     fun clearSelection() = _uiState.update { it.copy(selectedIds = emptySet()) }
 
+    fun dismissMemories() = _uiState.update { it.copy(memoriesItems = emptyList()) }
+
     fun selectAll(allIds: List<Long>) = _uiState.update { it.copy(selectedIds = allIds.toSet()) }
 
     fun deleteSelected() {

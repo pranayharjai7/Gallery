@@ -131,7 +131,7 @@ fun PhotosScreen(
                     item(span = { GridItemSpan(3) }) {
                         MemoriesCard(
                             items = uiState.memoriesItems,
-                            onDismiss = {},
+                            onDismiss = { viewModel.dismissMemories() },
                             onTap = {}
                         )
                     }
