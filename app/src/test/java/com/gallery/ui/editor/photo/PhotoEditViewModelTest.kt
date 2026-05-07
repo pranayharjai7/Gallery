@@ -51,14 +51,10 @@ class PhotoEditViewModelTest {
 
     @Test
     fun `rotateCW increments rotation by 90`() = runTest {
-        viewModel.uiState.test {
-            awaitItem()
-            viewModel.rotateCW()
-            assertEquals(90, awaitItem().cropState.rotation)
-            viewModel.rotateCW()
-            assertEquals(180, awaitItem().cropState.rotation)
-            cancelAndIgnoreRemainingEvents()
-        }
+        viewModel.rotateCW()
+        assertEquals(90, viewModel.uiState.value.cropState.rotation)
+        viewModel.rotateCW()
+        assertEquals(180, viewModel.uiState.value.cropState.rotation)
     }
 
     @Test
