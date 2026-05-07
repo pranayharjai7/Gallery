@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -211,7 +212,7 @@ fun ViewerScreen(
                         }) {
                             val isFav = currentItem?.id in uiState.favoriteIds
                             Icon(
-                                imageVector = Icons.Filled.Favorite,
+                                imageVector = if (isFav) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                                 contentDescription = if (isFav) "Remove from favorites" else "Add to favorites",
                                 tint = if (isFav) Color.Red else Color.White
                             )

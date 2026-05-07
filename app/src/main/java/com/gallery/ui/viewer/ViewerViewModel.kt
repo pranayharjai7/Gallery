@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gallery.domain.model.MediaItem
 import com.gallery.domain.usecase.GetAllMediaUseCase
+import com.gallery.domain.usecase.GetFavoritesUseCase
 import com.gallery.domain.usecase.MoveToTrashUseCase
 import com.gallery.domain.usecase.ToggleFavoriteUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -28,6 +30,7 @@ data class ViewerUiState(
 @HiltViewModel
 class ViewerViewModel @Inject constructor(
     private val getAllMedia: GetAllMediaUseCase,
+    private val getFavorites: GetFavoritesUseCase,
     private val moveToTrash: MoveToTrashUseCase,
     private val toggleFavorite: ToggleFavoriteUseCase
 ) : ViewModel() {
@@ -40,15 +43,18 @@ class ViewerViewModel @Inject constructor(
     fun loadMedia(startMediaId: Long) {
         loadJob?.cancel()
         loadJob = viewModelScope.launch {
-            getAllMedia()
+            combine(getAllMedia(), getFavorites()) { items, favItems ->
+                Pair(items, favItems)
+            }
                 .catch { e -> _uiState.update { it.copy(isLoading = false, error = e.message) } }
-                .collect { items ->
+                .collect { (items, favItems) ->
                     val index = items.indexOfFirst { it.id == startMediaId }.coerceAtLeast(0)
-                    _uiState.update {
-                        it.copy(
+                    _uiState.update { state ->
+                        state.copy(
                             isLoading = false,
                             items = items,
-                            currentIndex = index
+                            currentIndex = index,
+                            favoriteIds = favItems.map { it.id }.toSet()
                         )
                     }
                 }

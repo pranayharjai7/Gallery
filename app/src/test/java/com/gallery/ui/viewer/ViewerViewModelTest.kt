@@ -3,6 +3,7 @@ package com.gallery.ui.viewer
 import app.cash.turbine.test
 import com.gallery.domain.model.MediaItem
 import com.gallery.domain.usecase.GetAllMediaUseCase
+import com.gallery.domain.usecase.GetFavoritesUseCase
 import com.gallery.domain.usecase.MoveToTrashUseCase
 import com.gallery.domain.usecase.ToggleFavoriteUseCase
 import io.mockk.coVerify
@@ -26,10 +27,11 @@ class ViewerViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
 
     private val getAllMedia: GetAllMediaUseCase = mockk()
+    private val getFavorites: GetFavoritesUseCase = mockk()
     private val moveToTrash: MoveToTrashUseCase = mockk(relaxed = true)
     private val toggleFavorite: ToggleFavoriteUseCase = mockk(relaxed = true)
 
-    private fun buildVm() = ViewerViewModel(getAllMedia, moveToTrash, toggleFavorite)
+    private fun buildVm() = ViewerViewModel(getAllMedia, getFavorites, moveToTrash, toggleFavorite)
 
     private fun fakeItem(id: Long) = MediaItem(
         id = id,
@@ -49,6 +51,7 @@ class ViewerViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
+        every { getFavorites() } returns flowOf(emptyList())
     }
 
     @After
