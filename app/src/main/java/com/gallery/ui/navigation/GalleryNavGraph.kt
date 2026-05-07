@@ -7,8 +7,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 
 @Composable
 private fun PhotosScreen(navController: NavHostController) {
@@ -80,20 +82,29 @@ fun GalleryNavGraph(navController: NavHostController, modifier: Modifier = Modif
         composable(Screen.Trash.route) { TrashScreen(navController) }
         composable(Screen.Hidden.route) { HiddenAlbumScreen(navController) }
         composable(Screen.Settings.route) { SettingsScreen(navController) }
-        composable(Screen.Viewer.ROUTE) { backStackEntry ->
-            val mediaId = backStackEntry.arguments?.getString("mediaId")?.toLongOrNull() ?: return@composable
+        composable(
+            route = Screen.Viewer.ROUTE,
+            arguments = listOf(navArgument("mediaId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val mediaId = backStackEntry.arguments!!.getLong("mediaId")
             ViewerScreen(mediaId = mediaId, navController = navController)
         }
         composable(Screen.AlbumDetail.ROUTE) { backStackEntry ->
             val albumId = backStackEntry.arguments?.getString("albumId") ?: return@composable
             AlbumDetailScreen(albumId = albumId, navController = navController)
         }
-        composable(Screen.PhotoEdit.ROUTE) { backStackEntry ->
-            val mediaId = backStackEntry.arguments?.getString("mediaId")?.toLongOrNull() ?: return@composable
+        composable(
+            route = Screen.PhotoEdit.ROUTE,
+            arguments = listOf(navArgument("mediaId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val mediaId = backStackEntry.arguments!!.getLong("mediaId")
             PhotoEditScreen(mediaId = mediaId, navController = navController)
         }
-        composable(Screen.VideoEdit.ROUTE) { backStackEntry ->
-            val mediaId = backStackEntry.arguments?.getString("mediaId")?.toLongOrNull() ?: return@composable
+        composable(
+            route = Screen.VideoEdit.ROUTE,
+            arguments = listOf(navArgument("mediaId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val mediaId = backStackEntry.arguments!!.getLong("mediaId")
             VideoEditScreen(mediaId = mediaId, navController = navController)
         }
         composable(Screen.Slideshow.ROUTE) { backStackEntry ->

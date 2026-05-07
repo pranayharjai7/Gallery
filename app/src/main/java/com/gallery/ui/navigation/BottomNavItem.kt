@@ -15,3 +15,5 @@ val bottomNavItems = listOf(
     BottomNavItem(Screen.Search, "Search", Icons.Default.Search),
     BottomNavItem(Screen.More, "More", Icons.Default.MoreVert)
 )
+
+val bottomNavRoutes: Set<String> = bottomNavItems.map { it.screen.route }.toHashSet()
