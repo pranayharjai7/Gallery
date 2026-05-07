@@ -37,7 +37,8 @@ object DatabaseModule {
         context,
         GalleryDatabase::class.java,
         DATABASE_NAME
-    ).build()
+    ).fallbackToDestructiveMigration()
+        .build()
 
     @Provides
     fun provideTrashDao(db: GalleryDatabase): TrashDao = db.trashDao()
