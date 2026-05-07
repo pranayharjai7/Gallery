@@ -14,6 +14,7 @@ import androidx.navigation.navArgument
 import com.gallery.ui.albums.AlbumDetailScreen
 import com.gallery.ui.albums.AlbumsScreen
 import com.gallery.ui.photos.PhotosScreen
+import com.gallery.ui.viewer.ViewerScreen
 
 @Composable
 private fun SearchScreen(navController: NavHostController) {
@@ -38,11 +39,6 @@ private fun HiddenAlbumScreen(navController: NavHostController) {
 @Composable
 private fun SettingsScreen(navController: NavHostController) {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("TODO: SettingsScreen") }
-}
-
-@Composable
-private fun ViewerScreen(mediaId: Long, navController: NavHostController) {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("TODO: ViewerScreen (mediaId=$mediaId)") }
 }
 
 @Composable
@@ -86,7 +82,14 @@ fun GalleryNavGraph(navController: NavHostController, modifier: Modifier = Modif
             arguments = listOf(navArgument("mediaId") { type = NavType.LongType })
         ) { backStackEntry ->
             val mediaId = backStackEntry.arguments!!.getLong("mediaId")
-            ViewerScreen(mediaId = mediaId, navController = navController)
+            ViewerScreen(
+                mediaId = mediaId,
+                onBack = { navController.popBackStack() },
+                onEdit = { id, isVideo ->
+                    if (isVideo) navController.navigate(Screen.VideoEdit(id).route)
+                    else navController.navigate(Screen.PhotoEdit(id).route)
+                }
+            )
         }
         composable(
             route = Screen.AlbumDetail.ROUTE,
