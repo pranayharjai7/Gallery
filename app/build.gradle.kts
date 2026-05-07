@@ -16,7 +16,7 @@ android {
         targetSdk             = 35
         versionCode           = 1
         versionName           = "1.0"
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "com.google.dagger.hilt.android.testing.HiltTestRunner"
     }
 
     buildTypes {
@@ -121,5 +121,6 @@ dependencies {
     androidTestImplementation(libs.hilt.android.testing)
     androidTestImplementation(libs.mockk.android)
     androidTestImplementation(libs.workmanager.testing)
-    ksp(libs.hilt.android.compiler)
+    androidTestImplementation(libs.androidx.navigation.testing)
+    kspAndroidTest(libs.hilt.android.compiler)
 }
