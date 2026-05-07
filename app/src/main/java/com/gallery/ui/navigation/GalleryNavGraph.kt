@@ -11,11 +11,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-
-@Composable
-private fun PhotosScreen(navController: NavHostController) {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("TODO: PhotosScreen") }
-}
+import com.gallery.ui.photos.PhotosScreen
 
 @Composable
 private fun AlbumsScreen(navController: NavHostController) {
@@ -75,7 +71,12 @@ private fun SlideshowScreen(date: String, navController: NavHostController) {
 @Composable
 fun GalleryNavGraph(navController: NavHostController, modifier: Modifier = Modifier) {
     NavHost(navController = navController, startDestination = Screen.Photos.route, modifier = modifier) {
-        composable(Screen.Photos.route) { PhotosScreen(navController) }
+        composable(Screen.Photos.route) {
+            PhotosScreen(
+                onMediaClick = { mediaId -> navController.navigate(Screen.Viewer(mediaId).route) },
+                onNavigateToEditor = { mediaId, _ -> navController.navigate(Screen.Viewer(mediaId).route) }
+            )
+        }
         composable(Screen.Albums.route) { AlbumsScreen(navController) }
         composable(Screen.Search.route) { SearchScreen(navController) }
         composable(Screen.More.route) { MoreScreen(navController) }
