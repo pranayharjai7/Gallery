@@ -122,13 +122,13 @@ class MediaStoreMediaRepository @Inject constructor(
             val mimeCol       = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.MIME_TYPE)
             val bucketIdCol   = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.BUCKET_ID)
             val bucketNameCol = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.BUCKET_DISPLAY_NAME)
-            val latCol        = cursor.getColumnIndexOrThrow("latitude")
-            val lonCol        = cursor.getColumnIndexOrThrow("longitude")
+            val latCol        = cursor.getColumnIndex("latitude")
+            val lonCol        = cursor.getColumnIndex("longitude")
 
             while (cursor.moveToNext()) {
                 val id       = cursor.getLong(idCol)
-                val lat      = if (cursor.isNull(latCol)) null else cursor.getDouble(latCol)
-                val lon      = if (cursor.isNull(lonCol)) null else cursor.getDouble(lonCol)
+                val lat      = if (latCol < 0 || cursor.isNull(latCol)) null else cursor.getDouble(latCol)
+                val lon      = if (lonCol < 0 || cursor.isNull(lonCol)) null else cursor.getDouble(lonCol)
                 val location = if (lat != null && lon != null && (lat != 0.0 || lon != 0.0)) {
                     Pair(lat, lon)
                 } else {
