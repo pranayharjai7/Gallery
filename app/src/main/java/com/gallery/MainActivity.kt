@@ -11,6 +11,7 @@ import com.gallery.data.prefs.ThemeMode
 import com.gallery.data.prefs.UserPreferences
 import com.gallery.data.prefs.UserPreferencesRepository
 import com.gallery.ui.GalleryScaffold
+import com.gallery.ui.common.MediaPermissionsWrapper
 import com.gallery.ui.theme.GalleryTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -33,7 +34,9 @@ class MainActivity : ComponentActivity() {
                 },
                 dynamicColor = prefs.dynamicColor
             ) {
-                GalleryScaffold()
+                MediaPermissionsWrapper {
+                    GalleryScaffold()
+                }
             }
         }
     }

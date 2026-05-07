@@ -24,6 +24,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import coil3.request.error
+import androidx.compose.ui.platform.LocalContext
+import com.gallery.R
 import com.gallery.domain.model.MediaItem
 import com.gallery.domain.model.isVideo
 
@@ -42,10 +47,17 @@ fun MediaThumbnail(
             .combinedClickable(onClick = onClick, onLongClick = onLongClick)
     ) {
         AsyncImage(
-            model = item.uri,
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(item.uri)
+                .crossfade(true)
+                .error(R.drawable.ic_broken_image)
+                .build(),
             contentDescription = item.name,
             modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
+            contentScale = ContentScale.Crop,
+            onError = { state ->
+                android.util.Log.w("MediaThumbnail", "Failed to load: ${item.uri} — ${state.result.throwable.message}")
+            }
         )
         if (item.isVideo) {
             Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.2f)))
