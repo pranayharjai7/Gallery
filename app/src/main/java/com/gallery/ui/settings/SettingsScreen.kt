@@ -148,7 +148,7 @@ fun SettingsScreen(
     }
 
     if (showGridDialog) {
-        var selected by remember { mutableStateOf(uiState.prefs.gridSize) }
+        var selected by remember(uiState.prefs.gridSize) { mutableStateOf(uiState.prefs.gridSize) }
         AlertDialog(
             onDismissRequest = { showGridDialog = false },
             title = { Text("Grid Size") },
@@ -182,7 +182,7 @@ fun SettingsScreen(
 
     if (showIntervalDialog) {
         val options = listOf(2, 3, 4, 5, 8, 10)
-        var selected by remember { mutableStateOf(uiState.prefs.slideshowInterval) }
+        var selected by remember(uiState.prefs.slideshowInterval) { mutableStateOf(uiState.prefs.slideshowInterval) }
         AlertDialog(
             onDismissRequest = { showIntervalDialog = false },
             title = { Text("Slideshow Interval") },

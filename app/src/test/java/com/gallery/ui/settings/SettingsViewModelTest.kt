@@ -22,6 +22,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -58,8 +59,11 @@ class SettingsViewModelTest {
 
     @Test
     fun `initial state is loading, then populated from repo`() = runTest {
-        advanceUntilIdle()
-        viewModel.uiState.test {
+        val localViewModel = SettingsViewModel(repo)
+        localViewModel.uiState.test {
+            val loading = awaitItem()
+            assertTrue(loading.isLoading)
+            advanceUntilIdle()
             val loaded = awaitItem()
             assertFalse(loaded.isLoading)
             assertEquals(defaultPrefs, loaded.prefs)

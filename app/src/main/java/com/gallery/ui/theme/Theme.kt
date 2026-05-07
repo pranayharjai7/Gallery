@@ -12,10 +12,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 
 @Composable
-fun GalleryTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
+fun GalleryTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    dynamicColor: Boolean = true,
+    content: @Composable () -> Unit
+) {
     val context = LocalContext.current
-    val colorScheme = remember(darkTheme) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+    val colorScheme = remember(darkTheme, dynamicColor) {
+        if (dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         } else {
             if (darkTheme) darkColorScheme(primary = Purple80, secondary = PurpleGrey80, tertiary = Pink80)
