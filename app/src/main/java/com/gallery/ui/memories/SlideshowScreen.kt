@@ -49,10 +49,12 @@ fun SlideshowScreen(
 
     var currentIndex by remember { mutableIntStateOf(0) }
 
-    LaunchedEffect(Unit) {
+    val itemCount = items.size
+    LaunchedEffect(itemCount) {
+        if (currentIndex >= itemCount) currentIndex = 0
         while (true) {
             delay(SLIDESHOW_INTERVAL_MS)
-            currentIndex = (currentIndex + 1) % items.size
+            currentIndex = (currentIndex + 1) % itemCount
         }
     }
 
@@ -69,12 +71,14 @@ fun SlideshowScreen(
             },
             label = "slideshow_transition"
         ) { idx ->
-            AsyncImage(
-                model = items[idx].uri,
-                contentDescription = items[idx].name,
-                contentScale = ContentScale.Fit,
-                modifier = Modifier.fillMaxSize()
-            )
+            if (idx < items.size) {
+                AsyncImage(
+                    model = items[idx].uri,
+                    contentDescription = items[idx].name,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
         }
 
         IconButton(

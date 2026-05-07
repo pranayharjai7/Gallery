@@ -1,7 +1,6 @@
 package com.gallery.ui.memories
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,10 +35,10 @@ fun MemoriesCard(
     if (items.isEmpty()) return
 
     Card(
+        onClick = onTap,
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp)
-            .clickable(onClick = onTap),
+            .padding(horizontal = 8.dp, vertical = 4.dp),
         shape = RoundedCornerShape(12.dp)
     ) {
         Box {
