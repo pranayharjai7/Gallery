@@ -14,12 +14,8 @@ import androidx.navigation.navArgument
 import com.gallery.ui.albums.AlbumDetailScreen
 import com.gallery.ui.albums.AlbumsScreen
 import com.gallery.ui.photos.PhotosScreen
+import com.gallery.ui.search.SearchScreen
 import com.gallery.ui.viewer.ViewerScreen
-
-@Composable
-private fun SearchScreen(navController: NavHostController) {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("TODO: SearchScreen") }
-}
 
 @Composable
 private fun MoreScreen(navController: NavHostController) {
@@ -72,7 +68,13 @@ fun GalleryNavGraph(navController: NavHostController, modifier: Modifier = Modif
                 }
             )
         }
-        composable(Screen.Search.route) { SearchScreen(navController) }
+        composable(Screen.Search.route) {
+            SearchScreen(
+                onMediaClick = { mediaId ->
+                    navController.navigate(Screen.Viewer(mediaId).route)
+                }
+            )
+        }
         composable(Screen.More.route) { MoreScreen(navController) }
         composable(Screen.Trash.route) { TrashScreen(navController) }
         composable(Screen.Hidden.route) { HiddenAlbumScreen(navController) }
