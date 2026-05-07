@@ -66,13 +66,14 @@ fun DrawTab(
             androidx.compose.foundation.Canvas(
                 modifier = Modifier
                     .fillMaxSize()
-                    .pointerInput(Unit) {
+                    .pointerInput(drawState.currentColor, drawState.brushSize) {
                         detectDragGestures(
                             onDragStart = { offset ->
                                 currentPoints.clear()
                                 currentPoints.add(offset)
                             },
                             onDrag = { change, _ ->
+                                change.consume()
                                 currentPoints.add(change.position)
                             },
                             onDragEnd = {

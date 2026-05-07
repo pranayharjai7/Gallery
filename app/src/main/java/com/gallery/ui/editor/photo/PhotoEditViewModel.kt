@@ -172,12 +172,11 @@ class PhotoEditViewModel @Inject constructor(
     }
 
     private fun applyEdits(bitmap: Bitmap, state: PhotoEditUiState): Bitmap {
+        val toRecycle = mutableListOf<Bitmap>()
         var result = bitmap
 
-        if (state.cropState.rotation != 0
-            || state.cropState.flipHorizontal
-            || state.cropState.flipVertical
-        ) {
+        // 1. Crop transforms
+        if (state.cropState.rotation != 0 || state.cropState.flipHorizontal || state.cropState.flipVertical) {
             val matrix = Matrix().apply {
                 postRotate(state.cropState.rotation.toFloat())
                 if (state.cropState.flipHorizontal)
@@ -185,33 +184,49 @@ class PhotoEditViewModel @Inject constructor(
                 if (state.cropState.flipVertical)
                     postScale(1f, -1f, result.width / 2f, result.height / 2f)
             }
-            result = Bitmap.createBitmap(result, 0, 0, result.width, result.height, matrix, true)
+            val rotated = Bitmap.createBitmap(result, 0, 0, result.width, result.height, matrix, true)
+            if (result !== bitmap) toRecycle.add(result)
+            result = rotated
         }
 
-        val paint = Paint()
-        val colorMatrix = ColorMatrix()
-        val contrastFactor = 1f + state.adjustValues.contrast / 100f
-        colorMatrix.setScale(contrastFactor, contrastFactor, contrastFactor, 1f)
-        paint.colorFilter = ColorMatrixColorFilter(colorMatrix)
-        val adjustedBitmap = Bitmap.createBitmap(
-            result.width, result.height, result.config ?: Bitmap.Config.ARGB_8888
-        )
-        Canvas(adjustedBitmap).drawBitmap(result, 0f, 0f, paint)
+        // 2. Color adjustments (brightness + contrast + saturation + exposure)
+        val adjustValues = state.adjustValues
+        val contrastFactor = 1f + adjustValues.contrast / 100f
+        val brightnessTranslate = adjustValues.brightness / 100f * 255f
+        val colorMatrix = ColorMatrix(floatArrayOf(
+            contrastFactor, 0f, 0f, 0f, brightnessTranslate,
+            0f, contrastFactor, 0f, 0f, brightnessTranslate,
+            0f, 0f, contrastFactor, 0f, brightnessTranslate,
+            0f, 0f, 0f, 1f, 0f
+        ))
+        val satMatrix = ColorMatrix()
+        satMatrix.setSaturation(1f + adjustValues.saturation / 100f)
+        colorMatrix.postConcat(satMatrix)
+        val exposureFactor = 1f + adjustValues.exposure / 100f
+        val expMatrix = ColorMatrix()
+        expMatrix.setScale(exposureFactor, exposureFactor, exposureFactor, 1f)
+        colorMatrix.postConcat(expMatrix)
+        val adjustPaint = Paint().apply { colorFilter = ColorMatrixColorFilter(colorMatrix) }
+        val adjustedBitmap = Bitmap.createBitmap(result.width, result.height, result.config ?: Bitmap.Config.ARGB_8888)
+        Canvas(adjustedBitmap).drawBitmap(result, 0f, 0f, adjustPaint)
+        if (result !== bitmap) toRecycle.add(result)
         result = adjustedBitmap
 
+        // 3. Filter preset
         if (state.selectedFilterIndex != 0) {
             val filterPaint = Paint().apply {
                 colorFilter = ColorMatrixColorFilter(getFilterMatrix(state.selectedFilterIndex))
             }
-            val filteredBitmap = Bitmap.createBitmap(
-                result.width, result.height, result.config ?: Bitmap.Config.ARGB_8888
-            )
+            val filteredBitmap = Bitmap.createBitmap(result.width, result.height, result.config ?: Bitmap.Config.ARGB_8888)
             Canvas(filteredBitmap).drawBitmap(result, 0f, 0f, filterPaint)
+            if (result !== bitmap) toRecycle.add(result)
             result = filteredBitmap
         }
 
+        // 4. Draw paths
         if (state.drawState.paths.isNotEmpty()) {
             val withPaths = result.copy(result.config ?: Bitmap.Config.ARGB_8888, true)
+            if (result !== bitmap) toRecycle.add(result)
             val canvas = Canvas(withPaths)
             state.drawState.paths.forEach { dp ->
                 if (dp.points.size > 1) {
@@ -236,6 +251,7 @@ class PhotoEditViewModel @Inject constructor(
             result = withPaths
         }
 
+        toRecycle.forEach { it.recycle() }
         return result
     }
 
@@ -249,9 +265,9 @@ class PhotoEditViewModel @Inject constructor(
         val uri = context.contentResolver.insert(
             MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values
         ) ?: throw Exception("Failed to create file")
-        context.contentResolver.openOutputStream(uri)?.use {
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 95, it)
-        }
+        val outputStream = context.contentResolver.openOutputStream(uri)
+            ?: throw Exception("Failed to open output stream")
+        outputStream.use { bitmap.compress(Bitmap.CompressFormat.JPEG, 95, it) }
         values.clear()
         values.put(MediaStore.Images.Media.IS_PENDING, 0)
         context.contentResolver.update(uri, values, null, null)

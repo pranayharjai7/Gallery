@@ -5,7 +5,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
@@ -22,16 +23,17 @@ fun AdjustTab(
     onWarmth: (Float) -> Unit,
     onExposure: (Float) -> Unit
 ) {
-    LazyColumn(
+    Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
-        item { AdjustSlider("Brightness", values.brightness, onBrightness) }
-        item { AdjustSlider("Contrast", values.contrast, onContrast) }
-        item { AdjustSlider("Saturation", values.saturation, onSaturation) }
-        item { AdjustSlider("Warmth", values.warmth, onWarmth) }
-        item { AdjustSlider("Exposure", values.exposure, onExposure) }
+        AdjustSlider("Brightness", values.brightness, onBrightness)
+        AdjustSlider("Contrast", values.contrast, onContrast)
+        AdjustSlider("Saturation", values.saturation, onSaturation)
+        AdjustSlider("Warmth", values.warmth, onWarmth)
+        AdjustSlider("Exposure", values.exposure, onExposure)
     }
 }
 
