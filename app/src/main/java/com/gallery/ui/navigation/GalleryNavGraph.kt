@@ -13,17 +13,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.gallery.ui.albums.AlbumDetailScreen
 import com.gallery.ui.albums.AlbumsScreen
+import com.gallery.ui.hidden.HiddenAlbumScreen
 import com.gallery.ui.more.MoreScreen
 import com.gallery.ui.photos.PhotosScreen
 import com.gallery.ui.search.SearchScreen
 import com.gallery.ui.settings.SettingsScreen
 import com.gallery.ui.trash.TrashScreen
 import com.gallery.ui.viewer.ViewerScreen
-
-@Composable
-private fun HiddenAlbumScreen(navController: NavHostController) {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("TODO: HiddenAlbumScreen") }
-}
 
 @Composable
 private fun PhotoEditScreen(mediaId: Long, navController: NavHostController) {
@@ -67,7 +63,9 @@ fun GalleryNavGraph(navController: NavHostController, modifier: Modifier = Modif
             MoreScreen(onNavigate = { route -> navController.navigate(route) })
         }
         composable(Screen.Trash.route) { TrashScreen(onBack = { navController.popBackStack() }) }
-        composable(Screen.Hidden.route) { HiddenAlbumScreen(navController) }
+        composable(Screen.Hidden.route) {
+            HiddenAlbumScreen(onBack = { navController.popBackStack() })
+        }
         composable(Screen.Settings.route) {
             SettingsScreen(onBack = { navController.popBackStack() })
         }
