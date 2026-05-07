@@ -10,6 +10,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class MoveToTrashUseCaseTest {
@@ -45,6 +46,7 @@ class MoveToTrashUseCaseTest {
         assertEquals(1000L, captured.dateTaken)
         assertEquals("image/jpeg", captured.mimeType)
         assertEquals(7L, captured.bucketId)
+        assertTrue(captured.deletedAt > 0L)
     }
 
     @Test
