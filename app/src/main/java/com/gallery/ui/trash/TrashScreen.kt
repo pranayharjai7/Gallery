@@ -136,6 +136,7 @@ fun TrashScreen(
                         TrashItemThumbnail(
                             item = item,
                             isSelected = item.id in uiState.selectedIds,
+                            isSelecting = isSelecting,
                             onToggleSelection = { viewModel.toggleSelection(item.id) }
                         )
                     }
@@ -150,6 +151,7 @@ fun TrashScreen(
 private fun TrashItemThumbnail(
     item: TrashItem,
     isSelected: Boolean,
+    isSelecting: Boolean,
     onToggleSelection: () -> Unit
 ) {
     Box(
@@ -157,7 +159,7 @@ private fun TrashItemThumbnail(
             .aspectRatio(1f)
             .clip(RoundedCornerShape(4.dp))
             .combinedClickable(
-                onClick = onToggleSelection,
+                onClick = { if (isSelecting) onToggleSelection() },
                 onLongClick = onToggleSelection
             )
     ) {
