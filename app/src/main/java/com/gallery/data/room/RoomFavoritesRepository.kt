@@ -1,0 +1,27 @@
+package com.gallery.data.room
+
+import com.gallery.data.room.dao.FavoritesDao
+import com.gallery.data.room.entity.FavoriteEntity
+import com.gallery.domain.repository.FavoritesRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import javax.inject.Inject
+
+class RoomFavoritesRepository @Inject constructor(
+    private val favoritesDao: FavoritesDao
+) : FavoritesRepository {
+
+    override fun observeIds(): Flow<Set<Long>> =
+        favoritesDao.observeIds().map { it.toSet() }
+
+    override suspend fun toggle(mediaId: Long) {
+        if (favoritesDao.contains(mediaId)) {
+            favoritesDao.deleteById(mediaId)
+        } else {
+            favoritesDao.insert(FavoriteEntity(mediaId = mediaId))
+        }
+    }
+
+    override suspend fun contains(mediaId: Long): Boolean =
+        favoritesDao.contains(mediaId)
+}
