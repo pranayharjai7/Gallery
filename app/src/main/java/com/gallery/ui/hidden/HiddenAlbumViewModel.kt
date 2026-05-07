@@ -78,9 +78,9 @@ class HiddenAlbumViewModel @Inject constructor(
 
     fun unhideSelected() {
         val ids = _uiState.value.selectedIds.toSet()
-        _uiState.update { it.copy(selectedIds = emptySet()) }
         viewModelScope.launch {
             ids.forEach { id -> removeFromHidden(id) }
+            _uiState.update { it.copy(selectedIds = it.selectedIds - ids) }
         }
     }
 

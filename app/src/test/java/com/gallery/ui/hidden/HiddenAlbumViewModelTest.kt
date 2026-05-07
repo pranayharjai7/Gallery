@@ -1,7 +1,6 @@
 package com.gallery.ui.hidden
 
 import android.net.Uri
-import app.cash.turbine.test
 import com.gallery.domain.model.MediaItem
 import com.gallery.domain.usecase.GetHiddenMediaUseCase
 import com.gallery.domain.usecase.RemoveFromHiddenUseCase
@@ -75,19 +74,19 @@ class HiddenAlbumViewModelTest {
         val items = listOf(fakeItem(1L), fakeItem(2L))
         every { getHiddenMedia() } returns flowOf(items)
         val vm = buildVm()
-        vm.uiState.test {
-            awaitItem() // Locked initial
-            vm.onAuthSuccess()
-            val loadingState = awaitItem()
-            assertTrue(loadingState.authState is HiddenAuthState.Unlocked)
-            assertTrue(loadingState.isLoading)
-            advanceUntilIdle()
-            val loadedState = awaitItem()
-            assertTrue(loadedState.authState is HiddenAuthState.Unlocked)
-            assertFalse(loadedState.isLoading)
-            assertEquals(2, loadedState.items.size)
-            cancelAndIgnoreRemainingEvents()
-        }
+
+        assertTrue(vm.uiState.value.authState is HiddenAuthState.Locked)
+
+        vm.onAuthSuccess()
+        // After onAuthSuccess(), state is Unlocked + isLoading = true immediately (synchronous update)
+        assertTrue(vm.uiState.value.authState is HiddenAuthState.Unlocked)
+        assertTrue(vm.uiState.value.isLoading)
+
+        advanceUntilIdle()
+        // After coroutine runs, items are loaded
+        assertTrue(vm.uiState.value.authState is HiddenAuthState.Unlocked)
+        assertFalse(vm.uiState.value.isLoading)
+        assertEquals(2, vm.uiState.value.items.size)
     }
 
     @Test

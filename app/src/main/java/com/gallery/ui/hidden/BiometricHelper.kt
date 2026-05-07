@@ -5,7 +5,7 @@ import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
+import kotlinx.coroutines.suspendCancellableCoroutine
 
 class BiometricHelper(private val activity: FragmentActivity) {
 
@@ -16,7 +16,7 @@ class BiometricHelper(private val activity: FragmentActivity) {
         object HardwareUnavailable : AuthResult()
     }
 
-    suspend fun authenticate(): AuthResult = suspendCoroutine { cont ->
+    suspend fun authenticate(): AuthResult = suspendCancellableCoroutine { cont ->
         val manager = BiometricManager.from(activity)
         val authenticators =
             BiometricManager.Authenticators.BIOMETRIC_STRONG or
@@ -49,6 +49,7 @@ class BiometricHelper(private val activity: FragmentActivity) {
                     .setAllowedAuthenticators(authenticators)
                     .build()
                 prompt.authenticate(promptInfo)
+                cont.invokeOnCancellation { prompt.cancelAuthentication() }
             }
             BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED ->
                 cont.resume(AuthResult.NotEnrolled)

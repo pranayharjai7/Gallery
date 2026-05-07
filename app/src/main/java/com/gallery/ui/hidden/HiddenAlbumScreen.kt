@@ -9,8 +9,8 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -43,7 +43,11 @@ fun HiddenAlbumScreen(
     // Trigger biometric auth when screen first loads (while still locked)
     LaunchedEffect(Unit) {
         if (uiState.authState is HiddenAuthState.Locked) {
-            val activity = context as? FragmentActivity ?: return@LaunchedEffect
+            val activity = context as? FragmentActivity
+            if (activity == null) {
+                viewModel.onAuthError("Authentication requires a compatible activity host")
+                return@LaunchedEffect
+            }
             val helper = BiometricHelper(activity)
             when (val result = helper.authenticate()) {
                 is BiometricHelper.AuthResult.Success -> viewModel.onAuthSuccess()
@@ -74,7 +78,7 @@ fun HiddenAlbumScreen(
                 actions = {
                     if (uiState.selectedIds.isNotEmpty()) {
                         IconButton(onClick = { viewModel.unhideSelected() }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Unhide selected")
+                            Icon(Icons.Default.VisibilityOff, contentDescription = "Unhide selected")
                         }
                     }
                 }
