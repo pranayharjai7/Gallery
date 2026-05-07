@@ -17,12 +17,8 @@ import com.gallery.ui.more.MoreScreen
 import com.gallery.ui.photos.PhotosScreen
 import com.gallery.ui.search.SearchScreen
 import com.gallery.ui.settings.SettingsScreen
+import com.gallery.ui.trash.TrashScreen
 import com.gallery.ui.viewer.ViewerScreen
-
-@Composable
-private fun TrashScreen(navController: NavHostController) {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("TODO: TrashScreen") }
-}
 
 @Composable
 private fun HiddenAlbumScreen(navController: NavHostController) {
@@ -70,7 +66,7 @@ fun GalleryNavGraph(navController: NavHostController, modifier: Modifier = Modif
         composable(Screen.More.route) {
             MoreScreen(onNavigate = { route -> navController.navigate(route) })
         }
-        composable(Screen.Trash.route) { TrashScreen(navController) }
+        composable(Screen.Trash.route) { TrashScreen(onBack = { navController.popBackStack() }) }
         composable(Screen.Hidden.route) { HiddenAlbumScreen(navController) }
         composable(Screen.Settings.route) {
             SettingsScreen(onBack = { navController.popBackStack() })
