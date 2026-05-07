@@ -11,12 +11,9 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.gallery.ui.albums.AlbumDetailScreen
+import com.gallery.ui.albums.AlbumsScreen
 import com.gallery.ui.photos.PhotosScreen
-
-@Composable
-private fun AlbumsScreen(navController: NavHostController) {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("TODO: AlbumsScreen") }
-}
 
 @Composable
 private fun SearchScreen(navController: NavHostController) {
@@ -49,11 +46,6 @@ private fun ViewerScreen(mediaId: Long, navController: NavHostController) {
 }
 
 @Composable
-private fun AlbumDetailScreen(albumId: String, navController: NavHostController) {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("TODO: AlbumDetailScreen (albumId=$albumId)") }
-}
-
-@Composable
 private fun PhotoEditScreen(mediaId: Long, navController: NavHostController) {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("TODO: PhotoEditScreen (mediaId=$mediaId)") }
 }
@@ -77,7 +69,13 @@ fun GalleryNavGraph(navController: NavHostController, modifier: Modifier = Modif
                 onNavigateToEditor = { mediaId, _ -> navController.navigate(Screen.Viewer(mediaId).route) }
             )
         }
-        composable(Screen.Albums.route) { AlbumsScreen(navController) }
+        composable(Screen.Albums.route) {
+            AlbumsScreen(
+                onAlbumClick = { albumId ->
+                    navController.navigate(Screen.AlbumDetail(albumId).route)
+                }
+            )
+        }
         composable(Screen.Search.route) { SearchScreen(navController) }
         composable(Screen.More.route) { MoreScreen(navController) }
         composable(Screen.Trash.route) { TrashScreen(navController) }
@@ -90,9 +88,18 @@ fun GalleryNavGraph(navController: NavHostController, modifier: Modifier = Modif
             val mediaId = backStackEntry.arguments!!.getLong("mediaId")
             ViewerScreen(mediaId = mediaId, navController = navController)
         }
-        composable(Screen.AlbumDetail.ROUTE) { backStackEntry ->
+        composable(
+            route = Screen.AlbumDetail.ROUTE,
+            arguments = listOf(navArgument("albumId") { type = NavType.StringType })
+        ) { backStackEntry ->
             val albumId = backStackEntry.arguments?.getString("albumId") ?: return@composable
-            AlbumDetailScreen(albumId = albumId, navController = navController)
+            AlbumDetailScreen(
+                albumId = albumId,
+                onBack = { navController.popBackStack() },
+                onMediaClick = { mediaId ->
+                    navController.navigate(Screen.Viewer(mediaId).route)
+                }
+            )
         }
         composable(
             route = Screen.PhotoEdit.ROUTE,
