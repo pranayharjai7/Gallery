@@ -20,12 +20,8 @@ import com.gallery.ui.search.SearchScreen
 import com.gallery.ui.settings.SettingsScreen
 import com.gallery.ui.trash.TrashScreen
 import com.gallery.ui.editor.photo.PhotoEditScreen
+import com.gallery.ui.editor.video.VideoEditScreen
 import com.gallery.ui.viewer.ViewerScreen
-
-@Composable
-private fun VideoEditScreen(mediaId: Long, navController: NavHostController) {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("TODO: VideoEditScreen (mediaId=$mediaId)") }
-}
 
 @Composable
 private fun SlideshowScreen(date: String, navController: NavHostController) {
@@ -107,7 +103,7 @@ fun GalleryNavGraph(navController: NavHostController, modifier: Modifier = Modif
             arguments = listOf(navArgument("mediaId") { type = NavType.LongType })
         ) { backStackEntry ->
             val mediaId = backStackEntry.arguments!!.getLong("mediaId")
-            VideoEditScreen(mediaId = mediaId, navController = navController)
+            VideoEditScreen(mediaId = mediaId, onBack = { navController.popBackStack() })
         }
         composable(Screen.Slideshow.ROUTE) { backStackEntry ->
             val date = backStackEntry.arguments?.getString("date") ?: return@composable
