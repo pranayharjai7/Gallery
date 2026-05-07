@@ -120,7 +120,8 @@ fun TrashScreen(
             uiState.isLoading -> LoadingState(modifier = Modifier.padding(innerPadding))
             uiState.error != null -> EmptyState(
                 title = "Something went wrong",
-                message = uiState.error!!
+                message = uiState.error!!,
+                modifier = Modifier.padding(innerPadding)
             )
             uiState.items.isEmpty() -> EmptyState(
                 title = "Trash",
