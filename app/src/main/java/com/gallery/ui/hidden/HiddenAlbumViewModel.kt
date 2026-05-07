@@ -16,6 +16,7 @@ import javax.inject.Inject
 
 sealed class HiddenAuthState {
     object Locked : HiddenAuthState()
+    object Authenticating : HiddenAuthState()
     object Unlocked : HiddenAuthState()
     data class Error(val message: String) : HiddenAuthState()
     object HardwareUnavailable : HiddenAuthState()

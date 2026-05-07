@@ -1,8 +1,6 @@
 package com.gallery.ui.hidden
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -13,12 +11,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -29,7 +25,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.gallery.ui.common.EmptyState
@@ -39,13 +34,14 @@ import com.gallery.ui.common.MediaThumbnail
 @Composable
 fun HiddenAlbumScreen(
     onBack: () -> Unit,
+    onMediaClick: (Long) -> Unit,
     viewModel: HiddenAlbumViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
 
     // Trigger biometric auth when screen first loads (while still locked)
-    LaunchedEffect(uiState.authState) {
+    LaunchedEffect(Unit) {
         if (uiState.authState is HiddenAuthState.Locked) {
             val activity = context as? FragmentActivity ?: return@LaunchedEffect
             val helper = BiometricHelper(activity)
@@ -91,19 +87,13 @@ fun HiddenAlbumScreen(
                 .padding(paddingValues)
         ) {
             when (val authState = uiState.authState) {
-                is HiddenAuthState.Locked -> {
-                    // Show locking indicator while waiting for biometric prompt
-                    Column(
+                is HiddenAuthState.Locked,
+                is HiddenAuthState.Authenticating -> {
+                    Box(
                         modifier = Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+                        contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Lock,
-                            contentDescription = null,
-                            modifier = Modifier.padding(bottom = 16.dp)
-                        )
-                        Text("Authenticating...", style = MaterialTheme.typography.bodyMedium)
+                        CircularProgressIndicator()
                     }
                 }
 
@@ -143,7 +133,10 @@ fun HiddenAlbumScreen(
                                     item = item,
                                     modifier = Modifier.aspectRatio(1f),
                                     isSelected = item.id in uiState.selectedIds,
-                                    onClick = { viewModel.toggleSelection(item.id) },
+                                    onClick = {
+                                        if (uiState.selectedIds.isNotEmpty()) viewModel.toggleSelection(item.id)
+                                        else onMediaClick(item.id)
+                                    },
                                     onLongClick = { viewModel.toggleSelection(item.id) }
                                 )
                             }

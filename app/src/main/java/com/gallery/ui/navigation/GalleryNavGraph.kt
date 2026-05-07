@@ -64,7 +64,10 @@ fun GalleryNavGraph(navController: NavHostController, modifier: Modifier = Modif
         }
         composable(Screen.Trash.route) { TrashScreen(onBack = { navController.popBackStack() }) }
         composable(Screen.Hidden.route) {
-            HiddenAlbumScreen(onBack = { navController.popBackStack() })
+            HiddenAlbumScreen(
+                onBack = { navController.popBackStack() },
+                onMediaClick = { mediaId -> navController.navigate(Screen.Viewer(mediaId).route) }
+            )
         }
         composable(Screen.Settings.route) {
             SettingsScreen(onBack = { navController.popBackStack() })
