@@ -41,8 +41,8 @@ class MediaStoreMediaRepository @Inject constructor(
         context.contentResolver.observeUri(MEDIA_URI)
             .map {
                 queryMedia(
-                    selection = "${MediaStore.Files.FileColumns.MIME_TYPE} LIKE 'image/%'" +
-                        " OR ${MediaStore.Files.FileColumns.MIME_TYPE} LIKE 'video/%'",
+                    selection = "(${MediaStore.Files.FileColumns.MIME_TYPE} LIKE 'image/%'" +
+                        " OR ${MediaStore.Files.FileColumns.MIME_TYPE} LIKE 'video/%')",
                     selectionArgs = null,
                 )
             }
@@ -85,8 +85,8 @@ class MediaStoreMediaRepository @Inject constructor(
         return context.contentResolver.observeUri(MEDIA_URI)
             .map {
                 val all = queryMedia(
-                    selection = "${MediaStore.Files.FileColumns.MIME_TYPE} LIKE 'image/%'" +
-                        " OR ${MediaStore.Files.FileColumns.MIME_TYPE} LIKE 'video/%'",
+                    selection = "(${MediaStore.Files.FileColumns.MIME_TYPE} LIKE 'image/%'" +
+                        " OR ${MediaStore.Files.FileColumns.MIME_TYPE} LIKE 'video/%')",
                     selectionArgs = null,
                 )
                 all.filter { item ->
@@ -139,7 +139,7 @@ class MediaStoreMediaRepository @Inject constructor(
                     id        = id,
                     uri       = ContentUris.withAppendedId(MEDIA_URI, id),
                     name      = cursor.getString(nameCol).orEmpty(),
-                    dateTaken = cursor.getLong(dateTakenCol),
+                    dateTaken = if (cursor.isNull(dateTakenCol)) 0L else cursor.getLong(dateTakenCol),
                     size      = cursor.getLong(sizeCol),
                     width     = cursor.getInt(widthCol),
                     height    = cursor.getInt(heightCol),
