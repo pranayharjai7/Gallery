@@ -19,12 +19,8 @@ import com.gallery.ui.photos.PhotosScreen
 import com.gallery.ui.search.SearchScreen
 import com.gallery.ui.settings.SettingsScreen
 import com.gallery.ui.trash.TrashScreen
+import com.gallery.ui.editor.photo.PhotoEditScreen
 import com.gallery.ui.viewer.ViewerScreen
-
-@Composable
-private fun PhotoEditScreen(mediaId: Long, navController: NavHostController) {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("TODO: PhotoEditScreen (mediaId=$mediaId)") }
-}
 
 @Composable
 private fun VideoEditScreen(mediaId: Long, navController: NavHostController) {
@@ -104,7 +100,7 @@ fun GalleryNavGraph(navController: NavHostController, modifier: Modifier = Modif
             arguments = listOf(navArgument("mediaId") { type = NavType.LongType })
         ) { backStackEntry ->
             val mediaId = backStackEntry.arguments!!.getLong("mediaId")
-            PhotoEditScreen(mediaId = mediaId, navController = navController)
+            PhotoEditScreen(mediaId = mediaId, onBack = { navController.popBackStack() })
         }
         composable(
             route = Screen.VideoEdit.ROUTE,
