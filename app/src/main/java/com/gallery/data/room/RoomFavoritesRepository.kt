@@ -1,7 +1,6 @@
 package com.gallery.data.room
 
 import com.gallery.data.room.dao.FavoritesDao
-import com.gallery.data.room.entity.FavoriteEntity
 import com.gallery.domain.repository.FavoritesRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -15,11 +14,7 @@ class RoomFavoritesRepository @Inject constructor(
         favoritesDao.observeIds().map { it.toSet() }
 
     override suspend fun toggle(mediaId: Long) {
-        if (favoritesDao.contains(mediaId)) {
-            favoritesDao.deleteById(mediaId)
-        } else {
-            favoritesDao.insert(FavoriteEntity(mediaId = mediaId))
-        }
+        favoritesDao.toggle(mediaId)
     }
 
     override suspend fun contains(mediaId: Long): Boolean =

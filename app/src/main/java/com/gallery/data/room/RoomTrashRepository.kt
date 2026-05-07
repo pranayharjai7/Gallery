@@ -17,8 +17,7 @@ class RoomTrashRepository @Inject constructor(
         trashDao.observeAll().map { entities -> entities.map { it.toTrashItem() } }
 
     override suspend fun insert(item: TrashItem) {
-        val path = item.originalUri.path.orEmpty()
-        trashDao.insert(item.toEntity(path))
+        trashDao.insert(item.toEntity(item.originalUri.toString()))
     }
 
     override suspend fun delete(id: Long) {
