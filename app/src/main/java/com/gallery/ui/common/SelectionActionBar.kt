@@ -43,7 +43,7 @@ fun SelectionActionBar(
             }
             if (onMoveToHidden != null) {
                 IconButton(onClick = onMoveToHidden) {
-                    Icon(Icons.Default.VisibilityOff, contentDescription = "Move to Hidden Album")
+                    Icon(Icons.Filled.VisibilityOff, contentDescription = "Move to Hidden Album")
                 }
             }
             IconButton(onClick = onDelete) {

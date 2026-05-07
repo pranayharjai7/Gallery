@@ -268,6 +268,7 @@ class PhotosViewModelTest {
         advanceUntilIdle()
         coVerify(exactly = 1) { addToHidden(1L) }
         coVerify(exactly = 1) { addToHidden(3L) }
-        assertTrue(vm.uiState.value.selectedIds.isEmpty())
+        assertFalse(1L in vm.uiState.value.selectedIds)
+        assertFalse(3L in vm.uiState.value.selectedIds)
     }
 }

@@ -86,8 +86,11 @@ class AlbumDetailViewModel @Inject constructor(
     fun addSelectedToHidden() {
         val ids = _uiState.value.selectedIds.toSet()
         viewModelScope.launch {
-            ids.forEach { addToHidden(it) }
-            _uiState.update { it.copy(selectedIds = it.selectedIds - ids) }
+            try {
+                ids.forEach { addToHidden(it) }
+            } finally {
+                _uiState.update { it.copy(selectedIds = it.selectedIds - ids) }
+            }
         }
     }
 }
