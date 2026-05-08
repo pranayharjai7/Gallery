@@ -20,6 +20,7 @@ sealed class HiddenAuthState {
     object Unlocked : HiddenAuthState()
     data class Error(val message: String) : HiddenAuthState()
     object HardwareUnavailable : HiddenAuthState()
+    object NotEnrolled : HiddenAuthState()
 }
 
 data class HiddenAlbumUiState(
@@ -55,6 +56,10 @@ class HiddenAlbumViewModel @Inject constructor(
 
     fun onHardwareUnavailable() {
         _uiState.update { it.copy(authState = HiddenAuthState.HardwareUnavailable) }
+    }
+
+    fun onNotEnrolled() {
+        _uiState.update { it.copy(authState = HiddenAuthState.NotEnrolled) }
     }
 
     fun retryAuth() {
