@@ -1,5 +1,7 @@
 package com.pranayharjai7.gallery.ui.hidden
 
+import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -36,6 +38,15 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.pranayharjai7.gallery.ui.common.EmptyState
 import com.pranayharjai7.gallery.ui.common.MediaThumbnail
 
+private fun Context.findFragmentActivity(): FragmentActivity? {
+    var ctx = this
+    while (ctx is ContextWrapper) {
+        if (ctx is FragmentActivity) return ctx
+        ctx = ctx.baseContext
+    }
+    return null
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HiddenAlbumScreen(
@@ -57,7 +68,7 @@ fun HiddenAlbumScreen(
     // Re-run whenever authState becomes Locked (initial load + every retryAuth() call).
     LaunchedEffect(uiState.authState) {
         if (uiState.authState is HiddenAuthState.Locked) {
-            val activity = context as? FragmentActivity
+            val activity = context.findFragmentActivity()
             if (activity == null) {
                 viewModel.onAuthError("Authentication requires a compatible activity host")
                 return@LaunchedEffect
