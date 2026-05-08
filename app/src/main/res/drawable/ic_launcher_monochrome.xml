@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Monochrome layer for themed icons (Android 13+).
+  Identical silhouette to ic_launcher_foreground; the system applies the
+  wallpaper-derived theme color at runtime.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Photo frame border (hollow) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="
+            M72,26 L36,26
+            C30.48,26 26,30.48 26,36
+            L26,72
+            C26,77.52 30.48,82 36,82
+            L72,82
+            C77.52,82 82,77.52 82,72
+            L82,36
+            C82,30.48 77.52,26 72,26 Z
+
+            M72,31 L36,31
+            C33.24,31 31,33.24 31,36
+            L31,72
+            C31,74.76 33.24,77 36,77
+            L72,77
+            C74.76,77 77,74.76 77,72
+            L77,36
+            C77,33.24 74.76,31 72,31 Z"/>
+
+    <!-- Sun -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M65,39 m-5,0 a5,5 0,1,1 10,0 a5,5 0,1,1 -10,0"/>
+
+    <!-- Mountains -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M31,77 L31,64 L46,48 L58,60 L67,52 L77,64 L77,77 Z"/>
+
+</vector>
