@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace  = "com.gallery"
+    namespace  = "com.pranayharjai7.gallery"
     compileSdk = 35
 
     defaultConfig {
-        applicationId         = "com.gallery"
+        applicationId         = "com.pranayharjai7.gallery"
         minSdk                = 31
         targetSdk             = 35
         versionCode           = 1
