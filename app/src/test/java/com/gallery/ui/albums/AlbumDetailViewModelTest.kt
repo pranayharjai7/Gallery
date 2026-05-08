@@ -2,9 +2,10 @@ package com.gallery.ui.albums
 
 import app.cash.turbine.test
 import com.gallery.domain.model.MediaItem
-import com.gallery.domain.usecase.GetAlbumMediaUseCase
-import com.gallery.domain.usecase.MoveToTrashUseCase
 import com.gallery.domain.usecase.AddToHiddenUseCase
+import com.gallery.domain.usecase.GetAlbumMediaUseCase
+import com.gallery.domain.usecase.GetSmartAlbumMediaUseCase
+import com.gallery.domain.usecase.MoveToTrashUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -28,6 +29,7 @@ class AlbumDetailViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
     private lateinit var getAlbumMedia: GetAlbumMediaUseCase
+    private lateinit var getSmartAlbumMedia: GetSmartAlbumMediaUseCase
     private lateinit var moveToTrash: MoveToTrashUseCase
     private lateinit var addToHidden: AddToHiddenUseCase
 
@@ -52,6 +54,7 @@ class AlbumDetailViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         getAlbumMedia = mockk()
+        getSmartAlbumMedia = mockk()
         moveToTrash = mockk(relaxed = true)
         addToHidden = mockk()
         coEvery { addToHidden(any()) } just Runs
@@ -62,7 +65,7 @@ class AlbumDetailViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun buildVm() = AlbumDetailViewModel(getAlbumMedia, moveToTrash, addToHidden)
+    private fun buildVm() = AlbumDetailViewModel(getAlbumMedia, getSmartAlbumMedia, moveToTrash, addToHidden)
 
     @Test
     fun `loadAlbum sets albumName from first item bucketName`() = runTest {
@@ -101,6 +104,28 @@ class AlbumDetailViewModelTest {
             assertFalse(loaded.isLoading)
             assertEquals("", loaded.albumName)
             assertTrue(loaded.items.isEmpty())
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `loadAlbum smart album sets name from SmartAlbumFilter`() = runTest {
+        val items = listOf(fakeItem(1L, "DCIM/Camera"), fakeItem(2L, "DCIM/Camera"))
+        every { getSmartAlbumMedia("smart_camera") } returns flowOf(items)
+
+        val vm = buildVm()
+
+        vm.uiState.test {
+            awaitItem() // initial loading
+
+            vm.loadAlbum("smart_camera")
+
+            val nameSet = awaitItem()
+            val loaded = awaitItem()
+            assertFalse(loaded.isLoading)
+            assertEquals("Camera", loaded.albumName)
+            assertEquals(items, loaded.items)
+
             cancelAndIgnoreRemainingEvents()
         }
     }

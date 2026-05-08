@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.gallery.domain.model.MediaItem
 import com.gallery.domain.usecase.AddToHiddenUseCase
 import com.gallery.domain.usecase.GetAllMediaUseCase
-import com.gallery.domain.usecase.GetOnThisDayUseCase
 import com.gallery.domain.usecase.MoveToTrashUseCase
 import com.gallery.domain.usecase.ToggleFavoriteUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -39,7 +38,6 @@ class PhotosViewModel @Inject constructor(
     private val getAllMedia: GetAllMediaUseCase,
     private val moveToTrash: MoveToTrashUseCase,
     private val toggleFavorite: ToggleFavoriteUseCase,
-    private val getOnThisDay: GetOnThisDayUseCase,
     private val addToHidden: AddToHiddenUseCase
 ) : ViewModel() {
 
@@ -48,29 +46,35 @@ class PhotosViewModel @Inject constructor(
 
     init {
         loadMedia()
-        loadMemories()
     }
 
     private fun loadMedia() {
         viewModelScope.launch {
             getAllMedia().collect { items ->
-                _uiState.update {
-                    it.copy(isLoading = false, groupedMedia = groupByDate(items))
+                val memories = deriveMemories(items)
+                _uiState.update { state ->
+                    state.copy(
+                        isLoading = false,
+                        groupedMedia = groupByDate(items),
+                        memoriesItems = if (!state.memoriesDismissed) memories else state.memoriesItems
+                    )
                 }
             }
         }
     }
 
-    private fun loadMemories() {
+    private fun deriveMemories(items: List<MediaItem>): List<MediaItem> {
         val today = Calendar.getInstance()
-        val monthDay = (today.get(Calendar.MONTH) + 1) * 100 + today.get(Calendar.DAY_OF_MONTH)
-        viewModelScope.launch {
-            getOnThisDay(monthDay).collect { items ->
-                if (items.size >= 3 && !_uiState.value.memoriesDismissed) {
-                    _uiState.update { it.copy(memoriesItems = items) }
-                }
-            }
+        val month = today.get(Calendar.MONTH) + 1
+        val day   = today.get(Calendar.DAY_OF_MONTH)
+        val thisYear = today.get(Calendar.YEAR)
+        val matches = items.filter { item ->
+            val cal = Calendar.getInstance().apply { timeInMillis = item.dateTaken }
+            cal.get(Calendar.YEAR) != thisYear &&
+                cal.get(Calendar.MONTH) + 1 == month &&
+                cal.get(Calendar.DAY_OF_MONTH) == day
         }
+        return if (matches.size >= 3) matches else emptyList()
     }
 
     fun toggleSelection(id: Long) {

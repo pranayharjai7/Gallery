@@ -3,8 +3,10 @@ package com.gallery.ui.albums
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gallery.domain.model.MediaItem
+import com.gallery.domain.model.SmartAlbumFilter
 import com.gallery.domain.usecase.AddToHiddenUseCase
 import com.gallery.domain.usecase.GetAlbumMediaUseCase
+import com.gallery.domain.usecase.GetSmartAlbumMediaUseCase
 import com.gallery.domain.usecase.MoveToTrashUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -27,6 +29,7 @@ data class AlbumDetailUiState(
 @HiltViewModel
 class AlbumDetailViewModel @Inject constructor(
     private val getAlbumMedia: GetAlbumMediaUseCase,
+    private val getSmartAlbumMedia: GetSmartAlbumMediaUseCase,
     private val moveToTrash: MoveToTrashUseCase,
     private val addToHidden: AddToHiddenUseCase
 ) : ViewModel() {
@@ -38,18 +41,25 @@ class AlbumDetailViewModel @Inject constructor(
 
     fun loadAlbum(albumId: String) {
         loadJob?.cancel()
-        val id = albumId.toLongOrNull() ?: run {
-            _uiState.update { it.copy(isLoading = false) }
-            return
-        }
         loadJob = viewModelScope.launch {
-            getAlbumMedia(id)
+            val flow = if (albumId.startsWith("smart_")) {
+                _uiState.update { it.copy(albumName = SmartAlbumFilter.nameFor(albumId)) }
+                getSmartAlbumMedia(albumId)
+            } else {
+                val id = albumId.toLongOrNull() ?: run {
+                    _uiState.update { it.copy(isLoading = false) }
+                    return@launch
+                }
+                getAlbumMedia(id)
+            }
+            flow
                 .catch { e -> _uiState.update { it.copy(isLoading = false, error = e.message) } }
                 .collect { items ->
-                    _uiState.update {
-                        it.copy(
+                    _uiState.update { state ->
+                        state.copy(
                             isLoading = false,
-                            albumName = items.firstOrNull()?.bucketName ?: "",
+                            albumName = if (albumId.startsWith("smart_")) state.albumName
+                                        else items.firstOrNull()?.bucketName ?: state.albumName,
                             items = items
                         )
                     }

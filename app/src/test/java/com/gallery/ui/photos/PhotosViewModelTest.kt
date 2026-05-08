@@ -2,11 +2,10 @@ package com.gallery.ui.photos
 
 import app.cash.turbine.test
 import com.gallery.domain.model.MediaItem
+import com.gallery.domain.usecase.AddToHiddenUseCase
 import com.gallery.domain.usecase.GetAllMediaUseCase
-import com.gallery.domain.usecase.GetOnThisDayUseCase
 import com.gallery.domain.usecase.MoveToTrashUseCase
 import com.gallery.domain.usecase.ToggleFavoriteUseCase
-import com.gallery.domain.usecase.AddToHiddenUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -16,8 +15,8 @@ import io.mockk.Runs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -27,6 +26,7 @@ import org.junit.Test
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import java.util.Calendar
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PhotosViewModelTest {
@@ -36,7 +36,6 @@ class PhotosViewModelTest {
     private lateinit var getAllMedia: GetAllMediaUseCase
     private lateinit var moveToTrash: MoveToTrashUseCase
     private lateinit var toggleFavorite: ToggleFavoriteUseCase
-    private lateinit var getOnThisDay: GetOnThisDayUseCase
     private lateinit var addToHidden: AddToHiddenUseCase
 
     @Before
@@ -45,7 +44,6 @@ class PhotosViewModelTest {
         getAllMedia = mockk()
         moveToTrash = mockk(relaxed = true)
         toggleFavorite = mockk(relaxed = true)
-        getOnThisDay = mockk()
         addToHidden = mockk()
         coEvery { addToHidden(any()) } just Runs
     }
@@ -55,7 +53,7 @@ class PhotosViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun buildVm() = PhotosViewModel(getAllMedia, moveToTrash, toggleFavorite, getOnThisDay, addToHidden)
+    private fun buildVm() = PhotosViewModel(getAllMedia, moveToTrash, toggleFavorite, addToHidden)
 
     private fun fakeItem(
         id: Long,
@@ -78,11 +76,16 @@ class PhotosViewModelTest {
         location = null
     )
 
+    private fun lastYearTodayMs(): Long {
+        val cal = Calendar.getInstance()
+        cal.add(Calendar.YEAR, -1)
+        return cal.timeInMillis
+    }
+
     @Test
     fun `groups today items under TODAY key`() = runTest {
         val item = fakeItem(1L, dateTaken = System.currentTimeMillis())
         every { getAllMedia() } returns flowOf(listOf(item))
-        every { getOnThisDay(any()) } returns flowOf(emptyList())
 
         val vm = buildVm()
         vm.uiState.test {
@@ -99,7 +102,6 @@ class PhotosViewModelTest {
         val yesterdayMs = System.currentTimeMillis() - 25 * 60 * 60 * 1000L
         val item = fakeItem(2L, dateTaken = yesterdayMs)
         every { getAllMedia() } returns flowOf(listOf(item))
-        every { getOnThisDay(any()) } returns flowOf(emptyList())
 
         val vm = buildVm()
         vm.uiState.test {
@@ -115,7 +117,6 @@ class PhotosViewModelTest {
         val oldMs = System.currentTimeMillis() - 400L * 24 * 60 * 60 * 1000L
         val item = fakeItem(3L, dateTaken = oldMs)
         every { getAllMedia() } returns flowOf(listOf(item))
-        every { getOnThisDay(any()) } returns flowOf(emptyList())
 
         val vm = buildVm()
         vm.uiState.test {
@@ -132,7 +133,6 @@ class PhotosViewModelTest {
     fun `every 8th item is marked isFeatured`() = runTest {
         val items = (1L..16L).map { fakeItem(it) }
         every { getAllMedia() } returns flowOf(items)
-        every { getOnThisDay(any()) } returns flowOf(emptyList())
 
         val vm = buildVm()
         vm.uiState.test {
@@ -151,7 +151,6 @@ class PhotosViewModelTest {
     @Test
     fun `toggleSelection adds id when not selected`() = runTest {
         every { getAllMedia() } returns flowOf(emptyList())
-        every { getOnThisDay(any()) } returns flowOf(emptyList())
 
         val vm = buildVm()
         vm.toggleSelection(5L)
@@ -161,7 +160,6 @@ class PhotosViewModelTest {
     @Test
     fun `toggleSelection removes id when already selected`() = runTest {
         every { getAllMedia() } returns flowOf(emptyList())
-        every { getOnThisDay(any()) } returns flowOf(emptyList())
 
         val vm = buildVm()
         vm.toggleSelection(5L)
@@ -172,7 +170,6 @@ class PhotosViewModelTest {
     @Test
     fun `clearSelection empties selectedIds`() = runTest {
         every { getAllMedia() } returns flowOf(emptyList())
-        every { getOnThisDay(any()) } returns flowOf(emptyList())
 
         val vm = buildVm()
         vm.toggleSelection(1L); vm.toggleSelection(2L)
@@ -183,7 +180,6 @@ class PhotosViewModelTest {
     @Test
     fun `selectAll sets all provided ids`() = runTest {
         every { getAllMedia() } returns flowOf(emptyList())
-        every { getOnThisDay(any()) } returns flowOf(emptyList())
 
         val vm = buildVm()
         vm.selectAll(listOf(10L, 20L, 30L))
@@ -191,9 +187,11 @@ class PhotosViewModelTest {
     }
 
     @Test
-    fun `memories not shown when fewer than 3 items`() = runTest {
-        every { getAllMedia() } returns flowOf(emptyList())
-        every { getOnThisDay(any()) } returns flowOf(listOf(fakeItem(99L), fakeItem(100L)))
+    fun `memories not shown when fewer than 3 matching items from past years`() = runTest {
+        // Only 2 items from last year on today's date — below the 3-item threshold
+        val lastYear = lastYearTodayMs()
+        val items = listOf(fakeItem(1L, dateTaken = lastYear), fakeItem(2L, dateTaken = lastYear))
+        every { getAllMedia() } returns flowOf(items)
 
         val vm = buildVm()
         vm.uiState.test {
@@ -205,16 +203,15 @@ class PhotosViewModelTest {
     }
 
     @Test
-    fun `memories shown when 3 or more items`() = runTest {
-        val memItems = (1L..5L).map { fakeItem(it) }
-        every { getAllMedia() } returns flowOf(emptyList())
-        every { getOnThisDay(any()) } returns flowOf(memItems)
+    fun `memories shown when 3 or more items from past years match today`() = runTest {
+        val lastYear = lastYearTodayMs()
+        val memItems = (1L..5L).map { fakeItem(it, dateTaken = lastYear) }
+        every { getAllMedia() } returns flowOf(memItems)
 
         val vm = buildVm()
         vm.uiState.test {
             awaitItem() // initial
-            awaitItem() // either memories or media loaded
-            val state = awaitItem() // both loaded
+            val state = awaitItem() // loaded — memories and groupedMedia updated together
             assertEquals(5, state.memoriesItems.size)
             cancelAndIgnoreRemainingEvents()
         }
@@ -224,7 +221,6 @@ class PhotosViewModelTest {
     fun `deleteSelected calls moveToTrash for each selected item and clears selection`() = runTest {
         val items = listOf(fakeItem(1L), fakeItem(2L), fakeItem(3L))
         every { getAllMedia() } returns flowOf(items)
-        every { getOnThisDay(any()) } returns flowOf(emptyList())
 
         val vm = buildVm()
         vm.uiState.test {
@@ -245,7 +241,6 @@ class PhotosViewModelTest {
     @Test
     fun `toggleFavoriteItem delegates to ToggleFavoriteUseCase`() = runTest {
         every { getAllMedia() } returns flowOf(emptyList())
-        every { getOnThisDay(any()) } returns flowOf(emptyList())
 
         val vm = buildVm()
         vm.toggleFavoriteItem(42L)
@@ -258,7 +253,6 @@ class PhotosViewModelTest {
     fun `addSelectedToHidden calls AddToHiddenUseCase for each selected id`() = runTest {
         val items = listOf(fakeItem(1L), fakeItem(2L), fakeItem(3L))
         every { getAllMedia() } returns flowOf(items)
-        every { getOnThisDay(any()) } returns flowOf(emptyList())
 
         val vm = buildVm()
         advanceUntilIdle()

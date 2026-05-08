@@ -11,6 +11,44 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 
+private val GalleryDarkColorScheme = darkColorScheme(
+    primary              = VividViolet,
+    onPrimary            = DeepViolet,
+    primaryContainer     = VividVioletDim,
+    onPrimaryContainer   = LightVioletCont,
+    secondary            = RosePink,
+    onSecondary          = RosePinkDim,
+    secondaryContainer   = RosePinkDim,
+    onSecondaryContainer = RosePink,
+    tertiary             = GoldAmber,
+    background           = NearBlack,
+    onBackground         = DarkOnSurface,
+    surface              = DarkSurface,
+    onSurface            = DarkOnSurface,
+    surfaceVariant       = DarkSurfaceVar,
+    onSurfaceVariant     = VividViolet,
+    outline              = DarkOutline,
+)
+
+private val GalleryLightColorScheme = lightColorScheme(
+    primary              = DeepIndigo,
+    onPrimary            = SurfaceWhite,
+    primaryContainer     = LightVioletCont,
+    onPrimaryContainer   = DeepViolet,
+    secondary            = DeepRose,
+    onSecondary          = SurfaceWhite,
+    secondaryContainer   = LightRoseCont,
+    onSecondaryContainer = DeepRose,
+    tertiary             = DeepAmberLight,
+    background           = WarmWhite,
+    onBackground         = LightOnSurface,
+    surface              = SurfaceWhite,
+    onSurface            = LightOnSurface,
+    surfaceVariant       = LightSurfaceVar,
+    onSurfaceVariant     = DeepIndigo,
+    outline              = LightOutline,
+)
+
 @Composable
 fun GalleryTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -22,9 +60,13 @@ fun GalleryTheme(
         if (dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         } else {
-            if (darkTheme) darkColorScheme(primary = Purple80, secondary = PurpleGrey80, tertiary = Pink80)
-            else lightColorScheme(primary = Purple40, secondary = PurpleGrey40, tertiary = Pink40)
+            if (darkTheme) GalleryDarkColorScheme else GalleryLightColorScheme
         }
     }
-    MaterialTheme(colorScheme = colorScheme, typography = AppTypography, content = content)
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography  = AppTypography,
+        shapes      = AppShapes,
+        content     = content
+    )
 }

@@ -134,8 +134,8 @@ fun TrashScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(innerPadding),
-                    horizontalArrangement = Arrangement.spacedBy(2.dp),
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                    horizontalArrangement = Arrangement.spacedBy(3.dp),
+                    verticalArrangement = Arrangement.spacedBy(3.dp)
                 ) {
                     items(uiState.items, key = { it.id }) { item ->
                         TrashItemThumbnail(
@@ -162,7 +162,7 @@ private fun TrashItemThumbnail(
     Box(
         modifier = Modifier
             .aspectRatio(1f)
-            .clip(RoundedCornerShape(4.dp))
+            .clip(RoundedCornerShape(8.dp))
             .combinedClickable(
                 onClick = { if (isSelecting) onToggleSelection() },
                 onLongClick = onToggleSelection

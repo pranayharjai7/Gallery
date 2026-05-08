@@ -79,8 +79,8 @@ fun PhotosScreen(
                     .padding(padding)
                     .fillMaxSize(),
                 contentPadding = PaddingValues(4.dp),
-                horizontalArrangement = Arrangement.spacedBy(2.dp),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
+                horizontalArrangement = Arrangement.spacedBy(3.dp),
+                verticalArrangement = Arrangement.spacedBy(3.dp)
             ) {
                 if (uiState.memoriesItems.isNotEmpty() && !uiState.memoriesDismissed) {
                     item(span = { GridItemSpan(3) }) {
@@ -109,7 +109,7 @@ fun PhotosScreen(
                         MediaThumbnail(
                             item = indexed.item,
                             isSelected = indexed.item.id in uiState.selectedIds,
-                            modifier = Modifier.aspectRatio(if (indexed.isFeatured) 2f else 1f),
+                            modifier = Modifier.aspectRatio(1f),
                             onClick = {
                                 if (isSelecting) viewModel.toggleSelection(indexed.item.id)
                                 else onMediaClick(indexed.item.id)

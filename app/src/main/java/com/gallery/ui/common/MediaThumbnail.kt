@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -27,7 +28,6 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.request.error
-import androidx.compose.ui.platform.LocalContext
 import com.gallery.R
 import com.gallery.domain.model.MediaItem
 import com.gallery.domain.model.isVideo
@@ -43,13 +43,14 @@ fun MediaThumbnail(
 ) {
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(2.dp))
+            .clip(RoundedCornerShape(8.dp))
+            .background(Color(0xFF12121E))
             .combinedClickable(onClick = onClick, onLongClick = onLongClick)
     ) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(item.uri)
-                .crossfade(true)
+                .crossfade(300)
                 .error(R.drawable.ic_broken_image)
                 .build(),
             contentDescription = item.name,
