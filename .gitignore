@@ -1,10 +1,28 @@
-.worktrees/
-*.iml
+# Built outputs
+build/
 .gradle/
+captures/
+*.apk
+*.aab
+*.ap_
+
+# Local configuration (machine-specific, never commit)
 local.properties
+keystore.properties
+*.keystore
+*.jks
+
+# Android Studio / IDE
+*.iml
 .idea/
 .DS_Store
-build/
-captures/
 .externalNativeBuild/
 .cxx/
+
+# Worktrees (local development isolation)
+.worktrees/
+
+# AI / development tooling (local only)
+.claude/
+.superpowers/
+docs/superpowers/
