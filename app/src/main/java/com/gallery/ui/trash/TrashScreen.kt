@@ -1,5 +1,9 @@
 package com.gallery.ui.trash
 
+import android.app.Activity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -29,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,6 +61,22 @@ fun TrashScreen(
     val uiState by viewModel.uiState.collectAsState()
     val isSelecting = uiState.selectedIds.isNotEmpty()
     var showEmptyTrashDialog by remember { mutableStateOf(false) }
+
+    val deleteLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            viewModel.onDeleteConfirmed()
+        } else {
+            viewModel.clearPendingDelete()
+        }
+    }
+
+    LaunchedEffect(uiState.pendingDelete) {
+        uiState.pendingDelete?.let { pending ->
+            deleteLauncher.launch(IntentSenderRequest.Builder(pending.intentSender).build())
+        }
+    }
 
     if (showEmptyTrashDialog) {
         AlertDialog(

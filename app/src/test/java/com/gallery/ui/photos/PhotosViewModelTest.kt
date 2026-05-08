@@ -130,7 +130,7 @@ class PhotosViewModelTest {
     }
 
     @Test
-    fun `every 8th item is marked isFeatured`() = runTest {
+    fun `every 8th item is marked isFeatured and preceding item is marked isCompanion`() = runTest {
         val items = (1L..16L).map { fakeItem(it) }
         every { getAllMedia() } returns flowOf(items)
 
@@ -144,6 +144,10 @@ class PhotosViewModelTest {
             assertTrue(todayItems[15].isFeatured)
             assertFalse(todayItems[0].isFeatured)
             assertFalse(todayItems[6].isFeatured)
+            assertTrue(todayItems[6].isCompanion)
+            assertTrue(todayItems[14].isCompanion)
+            assertFalse(todayItems[7].isCompanion)
+            assertFalse(todayItems[0].isCompanion)
             cancelAndIgnoreRemainingEvents()
         }
     }

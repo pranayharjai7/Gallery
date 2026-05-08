@@ -52,17 +52,13 @@ class SearchViewModel @Inject constructor(
         searchJob = viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             delay(300) // debounce
-            try {
-                searchMedia(query)
-                    .catch { e -> _uiState.update { it.copy(isLoading = false, error = e.message ?: "Unknown error") } }
-                    .collect { items ->
-                        _uiState.update { state ->
-                            state.copy(isLoading = false, results = applyFilter(items, state.filter), rawResults = items)
-                        }
+            searchMedia(query)
+                .catch { e -> _uiState.update { it.copy(isLoading = false, error = e.message ?: "Unknown error") } }
+                .collect { items ->
+                    _uiState.update { state ->
+                        state.copy(isLoading = false, results = applyFilter(items, state.filter), rawResults = items)
                     }
-            } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, error = e.message ?: "Unknown error") }
-            }
+                }
         }
     }
 

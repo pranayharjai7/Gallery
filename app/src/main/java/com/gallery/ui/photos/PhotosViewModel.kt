@@ -21,7 +21,8 @@ import javax.inject.Inject
 
 data class IndexedMediaItem(
     val item: MediaItem,
-    val isFeatured: Boolean
+    val isFeatured: Boolean,
+    val isCompanion: Boolean = false
 )
 
 data class PhotosUiState(
@@ -139,7 +140,13 @@ class PhotosViewModel @Inject constructor(
         }
 
         return groups.mapValues { (_, list) ->
-            list.mapIndexed { index, item -> IndexedMediaItem(item = item, isFeatured = index % 8 == 7) }
+            list.mapIndexed { index, item ->
+                IndexedMediaItem(
+                    item = item,
+                    isFeatured = index % 8 == 7,
+                    isCompanion = index % 8 == 6
+                )
+            }
         }
     }
 

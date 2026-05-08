@@ -109,7 +109,7 @@ fun PhotosScreen(
                         MediaThumbnail(
                             item = indexed.item,
                             isSelected = indexed.item.id in uiState.selectedIds,
-                            modifier = Modifier.aspectRatio(1f),
+                            modifier = Modifier.aspectRatio(if (indexed.isCompanion) 0.5f else 1f),
                             onClick = {
                                 if (isSelecting) viewModel.toggleSelection(indexed.item.id)
                                 else onMediaClick(indexed.item.id)
